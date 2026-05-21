@@ -72,6 +72,11 @@ def parse_args() -> argparse.Namespace:
             f"Default: {DEFAULT_EVIDENCE_TOP_N}"
         ),
     )
+    parser.add_argument(
+        "--critic",
+        action="store_true",
+        help="Use the V3 answer critic to self-check and improve the final answer.",
+    )
     return parser.parse_args()
 
 
@@ -175,6 +180,21 @@ def print_retrieval_log(retrieval_info: RetrievalInfo) -> None:
         print(f"- {group}: {count}")
 
 
+def print_critic_summary(retrieval_info: RetrievalInfo) -> None:
+    """Print answer critic metadata after the critic has reviewed the draft."""
+    if not retrieval_info.critic_result:
+        return
+
+    issues = retrieval_info.critic_result.get("issues", [])
+    main_issue = issues[0].get("message", "None") if issues else "None"
+
+    print("\nAnswer critic summary:")
+    print(f"- passed: {str(retrieval_info.critic_result.get('passed', False)).lower()}")
+    print(f"- issues found: {len(issues)}")
+    print(f"- main issue: {main_issue}")
+    print(f"- summary: {retrieval_info.critic_result.get('critic_summary', '')}")
+
+
 def main() -> int:
     args = parse_args()
     if args.k <= 0:
@@ -192,6 +212,8 @@ def main() -> int:
     if args.grade_evidence and not args.planner:
         print("--grade-evidence requires --planner.")
         return 1
+    if args.critic and not args.planner:
+        print("Warning: Answer critic is most useful with --planner and --grade-evidence.")
 
     try:
         require_openai_api_key()
@@ -221,13 +243,19 @@ def main() -> int:
                 use_planner=args.planner,
                 grade_evidence=args.grade_evidence,
                 evidence_top_n=args.evidence_top_n,
+                use_critic=args.critic,
                 retrieval_log_callback=print_retrieval_log,
             )
         except Exception as exc:
             print(f"Question failed: {exc}")
             continue
 
-        print("\n" + answer.strip())
+        if args.critic:
+            print_critic_summary(_retrieval_info)
+            print("\nFinal answer:")
+            print(answer.strip())
+        else:
+            print("\n" + answer.strip())
         print_sources(documents)
 
 

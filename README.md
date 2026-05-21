@@ -103,6 +103,14 @@ python scripts/ask.py --planner --grade-evidence
 
 V1 plans retrieval into structured tasks. V2 grades the retrieved evidence for each task using deterministic relevance heuristics, then passes only kept evidence into the final answer generator.
 
+Use the V3 answer critic agent to self-check and improve the final answer:
+
+```bash
+python scripts/ask.py --planner --grade-evidence --critic
+```
+
+V3 reviews the draft answer against the already retrieved evidence. It does not retrieve new documents. It helps reduce overclaiming, preserve uncertainty, and improve consulting-style recommendations.
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.

@@ -19,6 +19,7 @@ from src.config import (
     MAX_COMPARISON_CHUNKS,
     MAX_CONTEXT_CHARS_PER_CHUNK,
 )
+from src.answer_critic import critique_answer
 from src.evidence_grader import grade_planner_results
 from src.query_planner import plan_query
 from src.vector_store import list_source_files, similarity_search_by_source_file
@@ -130,6 +131,8 @@ class RetrievalInfo:
     planner_tasks: list[dict] | None = None
     counts_by_task: list[dict] | None = None
     evidence_grading_summary: list[dict] | None = None
+    critic_result: dict | None = None
+    draft_answer: str | None = None
 
 
 def truncate_text(text: str, max_chars: int = MAX_CONTEXT_CHARS_PER_CHUNK) -> str:
@@ -512,6 +515,7 @@ def run_rag_answer(
     use_planner: bool = False,
     grade_evidence: bool = False,
     evidence_top_n: int = DEFAULT_EVIDENCE_TOP_N,
+    use_critic: bool = False,
     retrieval_log_callback: Callable[[RetrievalInfo], None] | None = None,
 ) -> tuple[str, list[Document], RetrievalInfo]:
     """Retrieve relevant chunks and answer with the configured chat model."""
@@ -537,6 +541,10 @@ def run_rag_answer(
         retrieval_info.counts_by_source = count_documents_by_source(documents)
         retrieval_info.evidence_grading_summary = grading_summary
 
+    if use_critic:
+        if "answer critic" not in retrieval_info.mode:
+            retrieval_info.mode = f"{retrieval_info.mode} + answer critic"
+
     if retrieval_log_callback:
         retrieval_log_callback(retrieval_info)
 
@@ -548,4 +556,17 @@ def run_rag_answer(
     llm = ChatOpenAI(model=CHAT_MODEL, temperature=0.2)
     chain = create_prompt() | llm
     response = chain.invoke({"question": question, "context": context})
-    return response.content, documents, retrieval_info
+    draft_answer = response.content
+    retrieval_info.draft_answer = draft_answer
+
+    if use_critic:
+        critic_result = critique_answer(
+            question=question,
+            draft_answer=draft_answer,
+            evidence_context=context,
+            retrieval_plan=retrieval_info.planner_tasks,
+        )
+        retrieval_info.critic_result = critic_result
+        return critic_result["improved_answer"], documents, retrieval_info
+
+    return draft_answer, documents, retrieval_info

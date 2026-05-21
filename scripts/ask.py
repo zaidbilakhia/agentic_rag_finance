@@ -52,6 +52,11 @@ def parse_args() -> argparse.Namespace:
         default=True,
         help="Include EBA/Basel context for comparison questions when relevant. Default: true",
     )
+    parser.add_argument(
+        "--planner",
+        action="store_true",
+        help="Use the V1 query planner agent for structured retrieval.",
+    )
     return parser.parse_args()
 
 
@@ -93,6 +98,29 @@ def print_sources(documents) -> None:
 def print_retrieval_log(retrieval_info: RetrievalInfo) -> None:
     """Print the retrieval mode and chunk counts before the LLM call."""
     print(f"\nRetrieval mode: {retrieval_info.mode}")
+
+    if retrieval_info.mode == "query planner agent":
+        print("\nGenerated retrieval plan:")
+        if not retrieval_info.planner_tasks:
+            print("- No structured planner tasks generated; falling back to normal retrieval.")
+        else:
+            for index, task in enumerate(retrieval_info.planner_tasks, start=1):
+                print(
+                    f"{index}. {task['entity']} | {task['risk_type']} | "
+                    f"{task['search_query']}"
+                )
+
+        print("\nChunks retrieved:")
+        if not retrieval_info.counts_by_task:
+            print("- none: 0")
+        else:
+            for item in retrieval_info.counts_by_task:
+                print(
+                    f"- {item['entity']} / {item['risk_type']}: "
+                    f"{item['count']}"
+                )
+        return
+
     if retrieval_info.counts_by_entity_and_risk:
         print("Chunks retrieved:")
         for entity, risk_counts in retrieval_info.counts_by_entity_and_risk.items():
@@ -155,6 +183,7 @@ def main() -> int:
                 per_source_k=args.per_source_k,
                 per_risk_k=args.per_risk_k,
                 include_regulatory_context=args.include_regulatory_context,
+                use_planner=args.planner,
                 retrieval_log_callback=print_retrieval_log,
             )
         except Exception as exc:

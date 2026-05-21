@@ -89,6 +89,12 @@ Retrieve a different number of chunks:
 python scripts/ask.py --k 8
 ```
 
+Use the V1 query planner agent for structured retrieval:
+
+```bash
+python scripts/ask.py --planner
+```
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.

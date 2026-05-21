@@ -18,6 +18,7 @@ from src.config import (
     MAX_COMPARISON_CHUNKS,
     MAX_CONTEXT_CHARS_PER_CHUNK,
 )
+from src.query_planner import plan_query
 from src.vector_store import list_source_files, similarity_search_by_source_file
 
 
@@ -123,6 +124,8 @@ class RetrievalInfo:
     counts_by_source: dict[str, int]
     counts_by_entity_and_risk: dict[str, dict[str, int]] | None = None
     regulatory_context_count: int = 0
+    planner_tasks: list[dict] | None = None
+    counts_by_task: list[dict] | None = None
 
 
 def truncate_text(text: str, max_chars: int = MAX_CONTEXT_CHARS_PER_CHUNK) -> str:
@@ -147,6 +150,42 @@ def format_retrieved_documents(documents: list[Document]) -> str:
             f"{chunk}"
         )
     return "\n\n".join(formatted)
+
+
+def format_planner_documents(documents: list[Document]) -> str:
+    """Format retrieved chunks grouped by planner task."""
+    grouped: dict[int, dict] = {}
+    for doc in documents:
+        task_index = int(doc.metadata.get("planner_task_index", 0))
+        grouped.setdefault(
+            task_index,
+            {
+                "entity": doc.metadata.get("retrieval_entity", "unknown"),
+                "risk_type": doc.metadata.get("retrieval_focus", "unknown"),
+                "search_query": doc.metadata.get("planner_search_query", "unknown"),
+                "documents": [],
+            },
+        )
+        grouped[task_index]["documents"].append(doc)
+
+    sections = []
+    for task_index in sorted(grouped):
+        group = grouped[task_index]
+        sections.append(
+            "Retrieval task "
+            f"{task_index}: {group['entity']} / {group['risk_type']} / {group['search_query']}"
+        )
+        for doc_index, doc in enumerate(group["documents"], start=1):
+            source_file = doc.metadata.get("source_file", "unknown")
+            page_number = doc.metadata.get("page_number", "unknown")
+            category = doc.metadata.get("document_category", "unknown")
+            chunk = truncate_text(doc.page_content)
+            sections.append(
+                f"[{task_index}.{doc_index}] Source: {source_file}, "
+                f"page {page_number}, category {category}\n{chunk}"
+            )
+
+    return "\n\n".join(sections)
 
 
 def create_prompt() -> ChatPromptTemplate:
@@ -206,6 +245,18 @@ def copy_document_with_focus(doc: Document, entity: str, risk_type: str) -> Docu
     return Document(page_content=doc.page_content, metadata=metadata)
 
 
+def copy_document_with_planner_task(doc: Document, task: dict, task_index: int) -> Document:
+    """Copy a document and attach the planner task that retrieved it."""
+    metadata = dict(doc.metadata)
+    metadata["retrieval_entity"] = task["entity"]
+    metadata["retrieval_focus"] = task["risk_type"]
+    metadata["retrieval_focuses"] = f"{task['entity']}: {task['risk_type']}"
+    metadata["planner_task_index"] = task_index
+    metadata["planner_search_query"] = task["search_query"]
+    metadata["planner_purpose"] = task["purpose"]
+    return Document(page_content=doc.page_content, metadata=metadata)
+
+
 def dedupe_documents(documents: list[Document]) -> list[Document]:
     """Remove duplicate chunks while preserving retrieval order and focus labels."""
     seen: dict[tuple[object, object, str], Document] = {}
@@ -248,12 +299,77 @@ def normal_retrieval(vector_store, question: str, k: int) -> tuple[list[Document
     )
 
 
+def planner_source_files(source_files: list[str], task: dict) -> list[str]:
+    """Map a planner task to source files. Return [] for global fallback."""
+    entity = task["entity"]
+    if entity == "General":
+        return []
+    return source_files_for_label(source_files, entity)
+
+
+def planner_retrieval(
+    vector_store,
+    question: str,
+    per_risk_k: int = DEFAULT_PER_RISK_K,
+) -> tuple[list[Document], RetrievalInfo]:
+    """Execute V1 query planner tasks against Chroma."""
+    tasks = plan_query(question)
+    source_files = list_source_files(vector_store)
+    documents: list[Document] = []
+    counts_by_task: list[dict] = []
+
+    if not tasks:
+        documents, info = normal_retrieval(vector_store, question, DEFAULT_TOP_K)
+        info.mode = "query planner agent"
+        info.planner_tasks = []
+        info.counts_by_task = []
+        return documents, info
+
+    for task_index, task in enumerate(tasks, start=1):
+        task_k = 2 if task["entity"] == "EBA" else per_risk_k
+        matching_files = planner_source_files(source_files, task)
+
+        if matching_files:
+            task_documents = similarity_search_by_source_file(
+                vector_store,
+                query=task["search_query"],
+                source_files=matching_files,
+                k=task_k,
+            )
+        else:
+            task_documents = vector_store.similarity_search(task["search_query"], k=task_k)
+
+        task_documents = dedupe_documents(
+            [
+                copy_document_with_planner_task(doc, task, task_index)
+                for doc in task_documents
+            ]
+        )
+        counts_by_task.append(
+            {
+                "entity": task["entity"],
+                "risk_type": task["risk_type"],
+                "count": len(task_documents),
+            }
+        )
+        documents.extend(task_documents)
+
+    documents = dedupe_documents(documents)[:MAX_COMPARISON_CHUNKS]
+    return documents, RetrievalInfo(
+        mode="query planner agent",
+        counts_by_source=count_documents_by_source(documents),
+        planner_tasks=tasks,
+        counts_by_task=counts_by_task,
+    )
+
+
 def comparison_retrieval(
     vector_store,
     question: str,
     per_source_k: int = DEFAULT_PER_SOURCE_K,
     per_risk_k: int = DEFAULT_PER_RISK_K,
     include_regulatory_context: bool = True,
+    use_planner: bool = False,
 ) -> tuple[list[Document], RetrievalInfo]:
     """Retrieve balanced evidence for Deutsche Bank and Commerzbank comparisons."""
     source_files = list_source_files(vector_store)
@@ -352,8 +468,16 @@ def retrieve_documents(
     per_source_k: int = DEFAULT_PER_SOURCE_K,
     per_risk_k: int = DEFAULT_PER_RISK_K,
     include_regulatory_context: bool = True,
+    use_planner: bool = False,
 ) -> tuple[list[Document], RetrievalInfo]:
     """Choose normal or balanced source-aware retrieval for the question."""
+    if use_planner:
+        return planner_retrieval(
+            vector_store,
+            question=question,
+            per_risk_k=per_risk_k,
+        )
+
     if is_bank_comparison(question):
         return comparison_retrieval(
             vector_store,
@@ -372,6 +496,7 @@ def run_rag_answer(
     per_source_k: int = DEFAULT_PER_SOURCE_K,
     per_risk_k: int = DEFAULT_PER_RISK_K,
     include_regulatory_context: bool = True,
+    use_planner: bool = False,
     retrieval_log_callback: Callable[[RetrievalInfo], None] | None = None,
 ) -> tuple[str, list[Document], RetrievalInfo]:
     """Retrieve relevant chunks and answer with the configured chat model."""
@@ -382,11 +507,15 @@ def run_rag_answer(
         per_source_k=per_source_k,
         per_risk_k=per_risk_k,
         include_regulatory_context=include_regulatory_context,
+        use_planner=use_planner,
     )
     if retrieval_log_callback:
         retrieval_log_callback(retrieval_info)
 
-    context = format_retrieved_documents(documents)
+    if retrieval_info.mode == "query planner agent" and retrieval_info.planner_tasks:
+        context = format_planner_documents(documents)
+    else:
+        context = format_retrieved_documents(documents)
 
     llm = ChatOpenAI(model=CHAT_MODEL, temperature=0.2)
     chain = create_prompt() | llm

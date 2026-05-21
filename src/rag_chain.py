@@ -12,6 +12,7 @@ from langchain_openai import ChatOpenAI
 
 from src.config import (
     CHAT_MODEL,
+    DEFAULT_EVIDENCE_TOP_N,
     DEFAULT_PER_RISK_K,
     DEFAULT_PER_SOURCE_K,
     DEFAULT_TOP_K,
@@ -323,8 +324,6 @@ def planner_retrieval(
     vector_store,
     question: str,
     per_risk_k: int = DEFAULT_PER_RISK_K,
-    grade_evidence: bool = False,
-    evidence_top_n: int = 2,
 ) -> tuple[list[Document], RetrievalInfo]:
     """Execute V1 query planner tasks against Chroma."""
     tasks = plan_query(question)
@@ -368,22 +367,6 @@ def planner_retrieval(
         )
         documents.extend(task_documents)
 
-    if grade_evidence:
-        kept_documents, grading_summary = grade_planner_results(
-            question,
-            planner_tasks=tasks,
-            documents=documents,
-            top_n=evidence_top_n,
-        )
-        kept_documents = kept_documents[:MAX_COMPARISON_CHUNKS]
-        return kept_documents, RetrievalInfo(
-            mode="query planner agent + evidence grader",
-            counts_by_source=count_documents_by_source(kept_documents),
-            planner_tasks=tasks,
-            counts_by_task=counts_by_task,
-            evidence_grading_summary=grading_summary,
-        )
-
     documents = dedupe_documents(documents)[:MAX_COMPARISON_CHUNKS]
     return documents, RetrievalInfo(
         mode="query planner agent",
@@ -400,8 +383,6 @@ def comparison_retrieval(
     per_risk_k: int = DEFAULT_PER_RISK_K,
     include_regulatory_context: bool = True,
     use_planner: bool = False,
-    grade_evidence: bool = False,
-    evidence_top_n: int = 2,
 ) -> tuple[list[Document], RetrievalInfo]:
     """Retrieve balanced evidence for Deutsche Bank and Commerzbank comparisons."""
     source_files = list_source_files(vector_store)
@@ -508,8 +489,6 @@ def retrieve_documents(
             vector_store,
             question=question,
             per_risk_k=per_risk_k,
-            grade_evidence=grade_evidence,
-            evidence_top_n=evidence_top_n,
         )
 
     if is_bank_comparison(question):
@@ -532,7 +511,7 @@ def run_rag_answer(
     include_regulatory_context: bool = True,
     use_planner: bool = False,
     grade_evidence: bool = False,
-    evidence_top_n: int = 2,
+    evidence_top_n: int = DEFAULT_EVIDENCE_TOP_N,
     retrieval_log_callback: Callable[[RetrievalInfo], None] | None = None,
 ) -> tuple[str, list[Document], RetrievalInfo]:
     """Retrieve relevant chunks and answer with the configured chat model."""
@@ -544,9 +523,20 @@ def run_rag_answer(
         per_risk_k=per_risk_k,
         include_regulatory_context=include_regulatory_context,
         use_planner=use_planner,
-        grade_evidence=grade_evidence,
-        evidence_top_n=evidence_top_n,
     )
+
+    if grade_evidence and retrieval_info.planner_tasks:
+        documents, grading_summary = grade_planner_results(
+            question,
+            planner_tasks=retrieval_info.planner_tasks,
+            documents=documents,
+            top_n=evidence_top_n,
+        )
+        documents = documents[:MAX_COMPARISON_CHUNKS]
+        retrieval_info.mode = "query planner agent + evidence grader"
+        retrieval_info.counts_by_source = count_documents_by_source(documents)
+        retrieval_info.evidence_grading_summary = grading_summary
+
     if retrieval_log_callback:
         retrieval_log_callback(retrieval_info)
 

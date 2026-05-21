@@ -95,6 +95,14 @@ Use the V1 query planner agent for structured retrieval:
 python scripts/ask.py --planner
 ```
 
+Use the V2 evidence grader agent to filter weak retrieved chunks before answering:
+
+```bash
+python scripts/ask.py --planner --grade-evidence
+```
+
+V1 plans retrieval into structured tasks. V2 grades the retrieved evidence for each task using deterministic relevance heuristics, then passes only kept evidence into the final answer generator.
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.

@@ -18,6 +18,7 @@ from src.config import (
     MAX_COMPARISON_CHUNKS,
     MAX_CONTEXT_CHARS_PER_CHUNK,
 )
+from src.evidence_grader import grade_planner_results
 from src.query_planner import plan_query
 from src.vector_store import list_source_files, similarity_search_by_source_file
 
@@ -26,6 +27,7 @@ ANSWER_PROMPT = """You are a careful financial document analysis assistant.
 
 Answer the question using only the retrieved context below.
 If the context is insufficient, say what is missing. Do not invent facts.
+When evidence relevance and scores are shown in the context, prioritize high-relevance and higher-scored evidence.
 Use consulting-style, evidence-safe language. Prefer phrases such as:
 - "Based on the retrieved evidence..."
 - "The retrieved disclosures suggest..."
@@ -126,6 +128,7 @@ class RetrievalInfo:
     regulatory_context_count: int = 0
     planner_tasks: list[dict] | None = None
     counts_by_task: list[dict] | None = None
+    evidence_grading_summary: list[dict] | None = None
 
 
 def truncate_text(text: str, max_chars: int = MAX_CONTEXT_CHARS_PER_CHUNK) -> str:
@@ -179,11 +182,20 @@ def format_planner_documents(documents: list[Document]) -> str:
             source_file = doc.metadata.get("source_file", "unknown")
             page_number = doc.metadata.get("page_number", "unknown")
             category = doc.metadata.get("document_category", "unknown")
-            chunk = truncate_text(doc.page_content)
-            sections.append(
+            relevance = doc.metadata.get("evidence_relevance")
+            score = doc.metadata.get("evidence_score")
+            header = (
                 f"[{task_index}.{doc_index}] Source: {source_file}, "
-                f"page {page_number}, category {category}\n{chunk}"
+                f"page {page_number}, category {category}"
             )
+            if relevance is not None and score is not None:
+                header = (
+                    f"[{group['entity']} | {group['risk_type']} | "
+                    f"relevance: {relevance} | score: {score} | "
+                    f"source: {source_file} | page: {page_number}]"
+                )
+            chunk = truncate_text(doc.page_content)
+            sections.append(f"{header}\n{chunk}")
 
     return "\n\n".join(sections)
 
@@ -311,6 +323,8 @@ def planner_retrieval(
     vector_store,
     question: str,
     per_risk_k: int = DEFAULT_PER_RISK_K,
+    grade_evidence: bool = False,
+    evidence_top_n: int = 2,
 ) -> tuple[list[Document], RetrievalInfo]:
     """Execute V1 query planner tasks against Chroma."""
     tasks = plan_query(question)
@@ -354,6 +368,22 @@ def planner_retrieval(
         )
         documents.extend(task_documents)
 
+    if grade_evidence:
+        kept_documents, grading_summary = grade_planner_results(
+            question,
+            planner_tasks=tasks,
+            documents=documents,
+            top_n=evidence_top_n,
+        )
+        kept_documents = kept_documents[:MAX_COMPARISON_CHUNKS]
+        return kept_documents, RetrievalInfo(
+            mode="query planner agent + evidence grader",
+            counts_by_source=count_documents_by_source(kept_documents),
+            planner_tasks=tasks,
+            counts_by_task=counts_by_task,
+            evidence_grading_summary=grading_summary,
+        )
+
     documents = dedupe_documents(documents)[:MAX_COMPARISON_CHUNKS]
     return documents, RetrievalInfo(
         mode="query planner agent",
@@ -370,6 +400,8 @@ def comparison_retrieval(
     per_risk_k: int = DEFAULT_PER_RISK_K,
     include_regulatory_context: bool = True,
     use_planner: bool = False,
+    grade_evidence: bool = False,
+    evidence_top_n: int = 2,
 ) -> tuple[list[Document], RetrievalInfo]:
     """Retrieve balanced evidence for Deutsche Bank and Commerzbank comparisons."""
     source_files = list_source_files(vector_store)
@@ -476,6 +508,8 @@ def retrieve_documents(
             vector_store,
             question=question,
             per_risk_k=per_risk_k,
+            grade_evidence=grade_evidence,
+            evidence_top_n=evidence_top_n,
         )
 
     if is_bank_comparison(question):
@@ -497,6 +531,8 @@ def run_rag_answer(
     per_risk_k: int = DEFAULT_PER_RISK_K,
     include_regulatory_context: bool = True,
     use_planner: bool = False,
+    grade_evidence: bool = False,
+    evidence_top_n: int = 2,
     retrieval_log_callback: Callable[[RetrievalInfo], None] | None = None,
 ) -> tuple[str, list[Document], RetrievalInfo]:
     """Retrieve relevant chunks and answer with the configured chat model."""
@@ -508,11 +544,13 @@ def run_rag_answer(
         per_risk_k=per_risk_k,
         include_regulatory_context=include_regulatory_context,
         use_planner=use_planner,
+        grade_evidence=grade_evidence,
+        evidence_top_n=evidence_top_n,
     )
     if retrieval_log_callback:
         retrieval_log_callback(retrieval_info)
 
-    if retrieval_info.mode == "query planner agent" and retrieval_info.planner_tasks:
+    if retrieval_info.planner_tasks:
         context = format_planner_documents(documents)
     else:
         context = format_retrieved_documents(documents)

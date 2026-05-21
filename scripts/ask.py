@@ -11,6 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import (  # noqa: E402
+    DEFAULT_EVIDENCE_TOP_N,
     DEFAULT_PER_RISK_K,
     DEFAULT_PER_SOURCE_K,
     DEFAULT_TOP_K,
@@ -57,6 +58,20 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Use the V1 query planner agent for structured retrieval.",
     )
+    parser.add_argument(
+        "--grade-evidence",
+        action="store_true",
+        help="Use the V2 evidence grader after planner retrieval.",
+    )
+    parser.add_argument(
+        "--evidence-top-n",
+        type=int,
+        default=DEFAULT_EVIDENCE_TOP_N,
+        help=(
+            "Maximum kept chunks per planner task after evidence grading. "
+            f"Default: {DEFAULT_EVIDENCE_TOP_N}"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -99,7 +114,7 @@ def print_retrieval_log(retrieval_info: RetrievalInfo) -> None:
     """Print the retrieval mode and chunk counts before the LLM call."""
     print(f"\nRetrieval mode: {retrieval_info.mode}")
 
-    if retrieval_info.mode == "query planner agent":
+    if retrieval_info.planner_tasks is not None:
         print("\nGenerated retrieval plan:")
         if not retrieval_info.planner_tasks:
             print("- No structured planner tasks generated; falling back to normal retrieval.")
@@ -119,6 +134,20 @@ def print_retrieval_log(retrieval_info: RetrievalInfo) -> None:
                     f"- {item['entity']} / {item['risk_type']}: "
                     f"{item['count']}"
                 )
+
+        if retrieval_info.evidence_grading_summary:
+            print("\nEvidence grading summary:")
+            for task_summary in retrieval_info.evidence_grading_summary:
+                print(
+                    f"- {task_summary['entity']} / {task_summary['risk_type']}: "
+                    f"{task_summary['kept']} kept, {task_summary['removed']} removed"
+                )
+                for item in task_summary["items"]:
+                    status = "kept" if item["keep"] else "removed"
+                    print(
+                        f"  - {item['relevance']} | {item['score']:.2f} | "
+                        f"page {item['page']} | {status}"
+                    )
         return
 
     if retrieval_info.counts_by_entity_and_risk:
@@ -157,6 +186,12 @@ def main() -> int:
     if args.per_risk_k <= 0:
         print("--per-risk-k must be greater than 0.")
         return 1
+    if args.evidence_top_n <= 0:
+        print("--evidence-top-n must be greater than 0.")
+        return 1
+    if args.grade_evidence and not args.planner:
+        print("--grade-evidence requires --planner.")
+        return 1
 
     try:
         require_openai_api_key()
@@ -184,6 +219,8 @@ def main() -> int:
                 per_risk_k=args.per_risk_k,
                 include_regulatory_context=args.include_regulatory_context,
                 use_planner=args.planner,
+                grade_evidence=args.grade_evidence,
+                evidence_top_n=args.evidence_top_n,
                 retrieval_log_callback=print_retrieval_log,
             )
         except Exception as exc:

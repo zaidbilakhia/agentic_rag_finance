@@ -147,6 +147,24 @@ python scripts/ask.py --planner --grade-evidence --repair-retrieval --critic --r
 
 V6 runs after evidence grading and before final answer generation. It detects planner tasks with weak or missing evidence, creates targeted fallback queries, retrieves a small number of additional chunks, re-grades them, and merges kept repaired evidence into the final context.
 
+## V7 — Streamlit Dashboard UI
+
+V7 adds a simple browser dashboard for running and inspecting the same backend pipeline used by the CLI. The app lets you enter a finance question, enable or disable pipeline agents, and inspect the final answer, retrieval plan, evidence grading, retrieval repair, critic review, generated report, and evaluation scores.
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the dashboard from the repo root:
+
+```bash
+streamlit run apps/streamlit_app.py
+```
+
+The app expects `OPENAI_API_KEY` to be available in the environment.
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.
@@ -182,8 +200,8 @@ This baseline avoids blindly embedding every page. During ingestion it:
 
 ## Future Roadmap
 
-- Add Query Planner Agent
+- Add fallback retrieval strategies for more institutions and risk types
 - Add Reasoning Agent
 - Add Risk Agent
 - Add Advisor Agent
-- Add Streamlit dashboard
+- Add deployment configuration

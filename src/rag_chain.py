@@ -640,3 +640,111 @@ def run_rag_answer(
         return critic_result["improved_answer"], documents, retrieval_info
 
     return draft_answer, documents, retrieval_info
+
+
+def run_rag_pipeline(
+    question: str,
+    use_planner: bool = False,
+    grade_evidence: bool = False,
+    repair_retrieval: bool = False,
+    use_critic: bool = False,
+    generate_report: bool = False,
+    evaluate: bool = False,
+    evidence_top_n: int = DEFAULT_EVIDENCE_TOP_N,
+    repair_top_k: int = 3,
+    repair_max_queries: int = 4,
+    repair_min_kept: int = 1,
+    repair_min_score: float = 0.40,
+    report_name: str | None = None,
+    evaluation_name: str | None = None,
+) -> dict:
+    """Run the full optional Agentic RAG pipeline for CLI or UI callers."""
+    from src.config import PROJECT_ROOT, require_openai_api_key
+    from src.evaluation_agent import evaluate_run, save_evaluation_markdown
+    from src.report_generator import collect_sources_from_documents
+    from src.report_generator import generate_report as write_report
+    from src.vector_store import load_vector_store
+
+    if repair_retrieval:
+        use_planner = True
+        grade_evidence = True
+    if grade_evidence:
+        use_planner = True
+
+    require_openai_api_key()
+    vector_store = load_vector_store()
+    final_answer, documents, retrieval_info = run_rag_answer(
+        vector_store,
+        question,
+        use_planner=use_planner,
+        grade_evidence=grade_evidence,
+        evidence_top_n=evidence_top_n,
+        repair_retrieval=repair_retrieval,
+        repair_top_k=repair_top_k,
+        repair_max_queries=repair_max_queries,
+        repair_min_kept=repair_min_kept,
+        repair_min_score=repair_min_score,
+        use_critic=use_critic,
+    )
+
+    sources = collect_sources_from_documents(documents)
+    retrieval_summary = retrieval_info.counts_by_task or retrieval_info.counts_by_source
+    report_path = None
+    report_content = None
+    evaluation = None
+    evaluation_path = None
+
+    if generate_report:
+        report_path = write_report(
+            question=question,
+            final_answer=final_answer,
+            retrieval_plan=retrieval_info.planner_tasks,
+            retrieval_summary=retrieval_summary,
+            evidence_summary=retrieval_info.evidence_grading_summary,
+            repair_summary=retrieval_info.retrieval_repair_summary,
+            critic_summary=retrieval_info.critic_result,
+            sources=sources,
+            report_name=report_name,
+        )
+        report_file = PROJECT_ROOT / report_path
+        if report_file.exists():
+            report_content = report_file.read_text(encoding="utf-8")
+
+    if evaluate:
+        evaluation = evaluate_run(
+            question=question,
+            final_answer=final_answer,
+            retrieval_plan=retrieval_info.planner_tasks,
+            retrieval_summary=retrieval_summary,
+            evidence_summary=retrieval_info.evidence_grading_summary,
+            critic_summary=retrieval_info.critic_result,
+            sources=sources,
+            report_path=report_path,
+            report_content=report_content,
+            repair_summary=retrieval_info.retrieval_repair_summary,
+        )
+        evaluation_path = save_evaluation_markdown(
+            evaluation,
+            evaluation_name=evaluation_name,
+        )
+
+    return {
+        "question": question,
+        "retrieval_mode": retrieval_info.mode,
+        "final_answer": final_answer,
+        "draft_answer": retrieval_info.draft_answer,
+        "documents": documents,
+        "retrieval_plan": retrieval_info.planner_tasks,
+        "retrieval_summary": retrieval_summary,
+        "counts_by_source": retrieval_info.counts_by_source,
+        "evidence_grading_summary": retrieval_info.evidence_grading_summary,
+        "initial_evidence_grading_summary": retrieval_info.initial_evidence_grading_summary,
+        "retrieval_repair_summary": retrieval_info.retrieval_repair_summary,
+        "critic_summary": retrieval_info.critic_result,
+        "report_path": report_path,
+        "report_content": report_content,
+        "evaluation": evaluation,
+        "evaluation_path": evaluation_path,
+        "retrieved_sources": sources,
+        "retrieval_info": retrieval_info,
+    }

@@ -90,6 +90,7 @@ def retrieval_count_map(retrieval_summary: Any) -> dict[tuple[str, str], int]:
 def score_retrieval_completeness(
     retrieval_plan: list[dict] | None,
     retrieval_summary: Any,
+    repair_summary: list[dict] | None = None,
 ) -> tuple[int, str]:
     """Score whether retrieval covered the expected banks, risks, and EBA task."""
     planned = {task_key(task) for task in retrieval_plan or []}
@@ -97,8 +98,15 @@ def score_retrieval_completeness(
     expected_planned = EXPECTED_TASKS.intersection(planned)
     expected_with_chunks = {key for key in EXPECTED_TASKS if counts.get(key, 0) > 0}
 
-    if EXPECTED_TASKS.issubset(planned) and EXPECTED_TASKS.issubset(expected_with_chunks):
+    unresolved_repairs = [
+        item for item in repair_summary or []
+        if item.get("status") in {"attempted_no_improvement", "failed"}
+    ]
+
+    if EXPECTED_TASKS.issubset(planned) and EXPECTED_TASKS.issubset(expected_with_chunks) and not unresolved_repairs:
         return 5, "All expected planner tasks were created and retrieved chunks."
+    if unresolved_repairs:
+        return 4, "Expected tasks were planned, but at least one evidence gap remained after repair."
     if EXPECTED_TASKS.issubset(planned) and len(expected_with_chunks) >= 6:
         return 4, "All expected tasks were planned with one weak or missing retrieval area."
     if len(expected_planned) >= 4:
@@ -108,7 +116,10 @@ def score_retrieval_completeness(
     return 1, "Retrieval was not structured or expected tasks were mostly missing."
 
 
-def score_source_relevance(evidence_summary: list[dict] | None) -> tuple[int, str]:
+def score_source_relevance(
+    evidence_summary: list[dict] | None,
+    repair_summary: list[dict] | None = None,
+) -> tuple[int, str]:
     """Score relevance using evidence-grading output."""
     if not evidence_summary:
         return 3, "Evidence grading was not available, so source relevance is only acceptable by default."
@@ -125,8 +136,14 @@ def score_source_relevance(evidence_summary: list[dict] | None) -> tuple[int, st
     if not kept_items:
         return 2, "No kept graded evidence was found."
 
+    unresolved_repairs = [
+        item for item in repair_summary or []
+        if item.get("status") in {"attempted_no_improvement", "failed"}
+    ]
     high_count = sum(1 for item in kept_items if item.get("relevance") == "high")
     high_ratio = high_count / len(kept_items)
+    if unresolved_repairs:
+        return 3, "Some low-relevance or missing evidence remained unresolved after repair."
     if high_ratio >= 0.75:
         return 5, "Most kept chunks are high relevance."
     if high_ratio >= 0.40 and removed_low > 0:
@@ -309,6 +326,7 @@ def calculate_overall_score(scores: dict[str, int | None]) -> float:
 def build_pipeline_metadata(
     retrieval_plan: list[dict] | None,
     evidence_summary: list[dict] | None,
+    repair_summary: list[dict] | None,
     critic_summary: dict | None,
     report_path: str | None,
 ) -> dict:
@@ -316,6 +334,7 @@ def build_pipeline_metadata(
     return {
         "planner_used": bool(retrieval_plan),
         "evidence_grader_used": bool(evidence_summary),
+        "retrieval_repair_used": bool(repair_summary),
         "critic_used": bool(critic_summary),
         "report_generated": bool(report_path),
         "report_path": report_path,
@@ -333,15 +352,16 @@ def evaluate_run(
     sources: dict | None = None,
     report_path: str | None = None,
     report_content: str | None = None,
+    repair_summary: list[dict] | None = None,
 ) -> dict:
     """Evaluate one completed finance RAG run using deterministic heuristics."""
     del graded_evidence  # Reserved for future finer-grained evaluation.
 
     metric_functions = {
         "retrieval_completeness": score_retrieval_completeness(
-            retrieval_plan, retrieval_summary
+            retrieval_plan, retrieval_summary, repair_summary
         ),
-        "source_relevance": score_source_relevance(evidence_summary),
+        "source_relevance": score_source_relevance(evidence_summary, repair_summary),
         "evidence_grounding": score_evidence_grounding(final_answer, sources),
         "comparative_reasoning": score_comparative_reasoning(final_answer),
         "risk_specific_reasoning": score_risk_specific_reasoning(final_answer),
@@ -371,6 +391,17 @@ def evaluate_run(
     else:
         weaknesses.append("Evidence relevance could be improved.")
 
+    unresolved_repairs = [
+        item for item in repair_summary or []
+        if item.get("status") in {"attempted_no_improvement", "failed"}
+    ]
+    improved_repairs = [item for item in repair_summary or [] if item.get("status") == "improved"]
+    if improved_repairs:
+        strengths.append("Retrieval repair improved at least one weak evidence task.")
+    if unresolved_repairs:
+        weaknesses.append("Some evidence gaps remained after retrieval repair.")
+        recommendations.append("Add additional fallback queries or ingest more relevant pages for unresolved tasks.")
+
     if scores["overclaiming_control"] and scores["overclaiming_control"] >= 4:
         strengths.append("Final answer uses cautious language and avoids definitive unsupported ranking.")
     else:
@@ -399,11 +430,12 @@ def evaluate_run(
         "weaknesses": weaknesses,
         "recommendations": recommendations,
         "pipeline_metadata": build_pipeline_metadata(
-            retrieval_plan, evidence_summary, critic_summary, report_path
+            retrieval_plan, evidence_summary, repair_summary, critic_summary, report_path
         ),
         "retrieval_plan": retrieval_plan or [],
         "retrieval_summary": retrieval_summary or [],
         "evidence_summary": evidence_summary or [],
+        "repair_summary": repair_summary or [],
         "report_path": report_path,
     }
 
@@ -437,6 +469,7 @@ def save_evaluation_markdown(
     tasks = evaluation.get("retrieval_plan", [])
     retrieval_summary = evaluation.get("retrieval_summary", [])
     evidence_summary = evaluation.get("evidence_summary", [])
+    repair_summary = evaluation.get("repair_summary", [])
 
     content = f"""# V5 Evaluation Agent Report
 
@@ -472,6 +505,7 @@ def save_evaluation_markdown(
 
 - planner used: {str(metadata['planner_used']).lower()}
 - evidence grader used: {str(metadata['evidence_grader_used']).lower()}
+- retrieval repair used: {str(metadata['retrieval_repair_used']).lower()}
 - critic used: {str(metadata['critic_used']).lower()}
 - report generated: {str(metadata['report_generated']).lower()}
 - report path: {metadata.get('report_path') or 'n/a'}
@@ -489,6 +523,10 @@ Chunks retrieved:
 Evidence kept/removed:
 
 {chr(10).join(f"- {item.get('entity')} / {item.get('risk_type')}: {item.get('kept', 0)} kept, {item.get('removed', 0)} removed" for item in evidence_summary) or "- Evidence grading summary was not available."}
+
+Retrieval repair:
+
+{chr(10).join(f"- {item.get('entity')} / {item.get('risk_type')}: {item.get('status')} ({item.get('additional_chunks_kept', 0)} kept from repair)" for item in repair_summary) or "- Retrieval repair was not used."}
 
 ## 9. Evaluation Limitations
 

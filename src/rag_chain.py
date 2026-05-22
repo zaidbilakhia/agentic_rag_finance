@@ -22,6 +22,7 @@ from src.config import (
 from src.answer_critic import critique_answer
 from src.evidence_grader import grade_planner_results
 from src.query_planner import plan_query
+from src.retrieval_repair import repair_retrieval_results
 from src.vector_store import list_source_files, similarity_search_by_source_file
 
 
@@ -130,7 +131,9 @@ class RetrievalInfo:
     regulatory_context_count: int = 0
     planner_tasks: list[dict] | None = None
     counts_by_task: list[dict] | None = None
+    initial_evidence_grading_summary: list[dict] | None = None
     evidence_grading_summary: list[dict] | None = None
+    retrieval_repair_summary: list[dict] | None = None
     critic_result: dict | None = None
     draft_answer: str | None = None
 
@@ -303,6 +306,30 @@ def count_documents_by_source(documents: list[Document]) -> dict[str, int]:
         for doc in documents
     )
     return dict(counts)
+
+
+def merge_repair_grading_summary(
+    evidence_summary: list[dict],
+    repair_summary: list[dict],
+) -> list[dict]:
+    """Merge repaired grading items into the final evidence grading summary."""
+    repair_by_task = {
+        (item.get("entity"), item.get("risk_type")): item for item in repair_summary
+    }
+    merged = []
+    for task_summary in evidence_summary:
+        updated = dict(task_summary)
+        items = list(task_summary.get("items", []))
+        repair_result = repair_by_task.get(
+            (task_summary.get("entity"), task_summary.get("risk_type"))
+        )
+        if repair_result:
+            items.extend(repair_result.get("graded_items", []))
+        updated["items"] = items
+        updated["kept"] = sum(1 for item in items if item.get("keep"))
+        updated["removed"] = sum(1 for item in items if not item.get("keep"))
+        merged.append(updated)
+    return merged
 
 
 def normal_retrieval(vector_store, question: str, k: int) -> tuple[list[Document], RetrievalInfo]:
@@ -515,6 +542,11 @@ def run_rag_answer(
     use_planner: bool = False,
     grade_evidence: bool = False,
     evidence_top_n: int = DEFAULT_EVIDENCE_TOP_N,
+    repair_retrieval: bool = False,
+    repair_top_k: int = 3,
+    repair_max_queries: int = 4,
+    repair_min_kept: int = 1,
+    repair_min_score: float = 0.40,
     use_critic: bool = False,
     retrieval_log_callback: Callable[[RetrievalInfo], None] | None = None,
 ) -> tuple[str, list[Document], RetrievalInfo]:
@@ -529,6 +561,7 @@ def run_rag_answer(
         use_planner=use_planner,
     )
 
+    initial_documents = list(documents)
     if grade_evidence and retrieval_info.planner_tasks:
         documents, grading_summary = grade_planner_results(
             question,
@@ -539,7 +572,44 @@ def run_rag_answer(
         documents = documents[:MAX_COMPARISON_CHUNKS]
         retrieval_info.mode = "query planner agent + evidence grader"
         retrieval_info.counts_by_source = count_documents_by_source(documents)
+        retrieval_info.initial_evidence_grading_summary = grading_summary
         retrieval_info.evidence_grading_summary = grading_summary
+
+        if repair_retrieval:
+            source_files = list_source_files(vector_store)
+
+            def repair_retriever(task: dict, query: str, k: int) -> list[Document]:
+                matching_files = planner_source_files(source_files, task)
+                if matching_files:
+                    return similarity_search_by_source_file(
+                        vector_store,
+                        query=query,
+                        source_files=matching_files,
+                        k=k,
+                    )
+                return vector_store.similarity_search(query, k=k)
+
+            repair_result = repair_retrieval_results(
+                question=question,
+                planner_tasks=retrieval_info.planner_tasks,
+                initial_documents=initial_documents,
+                kept_documents=documents,
+                evidence_summary=grading_summary,
+                retriever_fn=repair_retriever,
+                top_k=repair_top_k,
+                evidence_top_n=evidence_top_n,
+                max_queries=repair_max_queries,
+                min_kept=repair_min_kept,
+                min_best_score=repair_min_score,
+            )
+            documents = repair_result["documents"][:MAX_COMPARISON_CHUNKS]
+            retrieval_info.mode = "query planner agent + evidence grader + retrieval repair"
+            retrieval_info.counts_by_source = count_documents_by_source(documents)
+            retrieval_info.retrieval_repair_summary = repair_result["repair_summary"]
+            retrieval_info.evidence_grading_summary = merge_repair_grading_summary(
+                grading_summary,
+                repair_result["repair_summary"],
+            )
 
     if use_critic:
         if "answer critic" not in retrieval_info.mode:

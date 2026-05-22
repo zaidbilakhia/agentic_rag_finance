@@ -163,6 +163,7 @@ def table_or_note(headers: list[str], rows: list[list[Any]], empty_note: str) ->
 def pipeline_lines(
     retrieval_plan: list[dict] | None,
     evidence_summary: list[dict] | None,
+    repair_summary: list[dict] | None,
     critic_summary: dict | None,
 ) -> str:
     """Describe the pipeline components active for this report."""
@@ -176,6 +177,11 @@ def pipeline_lines(
         lines.append("- Evidence Grader Agent: scored retrieved chunks and filtered weak evidence before answer generation.")
     else:
         lines.append("- Evidence Grader Agent: was not used for this run.")
+
+    if repair_summary:
+        lines.append("- Retrieval Repair Agent: retried weak or missing evidence tasks with targeted fallback queries.")
+    else:
+        lines.append("- Retrieval Repair Agent: was not used for this run.")
 
     if critic_summary:
         lines.append("- Answer Critic Agent: reviewed the draft answer for grounding, overclaiming, uncertainty, and consulting-style recommendations.")
@@ -192,6 +198,7 @@ def generate_report(
     retrieval_plan: list[dict] | None = None,
     retrieval_summary: Any | None = None,
     evidence_summary: list[dict] | None = None,
+    repair_summary: list[dict] | None = None,
     critic_summary: dict | None = None,
     sources: dict | None = None,
     output_dir: str | Path = DEFAULT_REPORT_DIR,
@@ -240,6 +247,18 @@ def generate_report(
             ]
         )
 
+    repair_rows = [
+        [
+            item.get("entity", "unknown"),
+            item.get("risk_type", "unknown"),
+            item.get("status", "unknown"),
+            item.get("additional_chunks_retrieved", 0),
+            item.get("additional_chunks_kept", 0),
+            f"{float(item.get('best_repaired_score', 0.0)):.2f}",
+        ]
+        for item in repair_summary or []
+    ]
+
     source_rows = [
         [source_file, ", ".join(str(page) for page in pages)]
         for source_file, pages in sorted((sources or {}).items())
@@ -261,7 +280,7 @@ This report interprets the final answer as a retrieved-evidence assessment, not 
 
 ## 3. Agentic RAG Pipeline Used
 
-{pipeline_lines(retrieval_plan, evidence_summary, critic_summary)}
+{pipeline_lines(retrieval_plan, evidence_summary, repair_summary, critic_summary)}
 
 ## 4. Generated Retrieval Plan
 
@@ -288,6 +307,14 @@ This report interprets the final answer as a retrieved-evidence assessment, not 
     )}
 
 Low-relevance evidence was excluded from final answer generation when evidence grading was enabled.
+
+## Retrieval Repair Summary
+
+{table_or_note(
+        ["Entity", "Risk Type", "Status", "Additional Retrieved", "Additional Kept", "Best Repaired Score"],
+        repair_rows,
+        "Retrieval Repair Agent was not used for this run.",
+    )}
 
 ## 7. Risk Comparison
 

@@ -75,6 +75,35 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--repair-retrieval",
+        action="store_true",
+        help="Use the V6 retrieval repair agent for weak planner evidence tasks.",
+    )
+    parser.add_argument(
+        "--repair-top-k",
+        type=int,
+        default=3,
+        help="Chunks to retrieve per repair query. Default: 3",
+    )
+    parser.add_argument(
+        "--repair-max-queries",
+        type=int,
+        default=4,
+        help="Maximum repair queries per weak task. Default: 4",
+    )
+    parser.add_argument(
+        "--repair-min-kept",
+        type=int,
+        default=1,
+        help="Minimum kept chunks per task before repair is skipped. Default: 1",
+    )
+    parser.add_argument(
+        "--repair-min-score",
+        type=float,
+        default=0.40,
+        help="Minimum best kept evidence score before repair is skipped. Default: 0.40",
+    )
+    parser.add_argument(
         "--critic",
         action="store_true",
         help="Use the V3 answer critic to self-check and improve the final answer.",
@@ -175,6 +204,17 @@ def print_retrieval_log(retrieval_info: RetrievalInfo) -> None:
                         f"  - {item['relevance']} | {item['score']:.2f} | "
                         f"page {item['page']} | {status}"
                     )
+        if retrieval_info.retrieval_repair_summary:
+            print("\nRetrieval repair summary:")
+            for repair in retrieval_info.retrieval_repair_summary:
+                print(f"- {repair['entity']} / {repair['risk_type']}: {repair['status']}")
+                if repair["repair_queries"]:
+                    print("  - repair queries:")
+                    for index, query in enumerate(repair["repair_queries"], start=1):
+                        print(f"    {index}. {query}")
+                print(f"  - additional chunks retrieved: {repair['additional_chunks_retrieved']}")
+                print(f"  - additional chunks kept: {repair['additional_chunks_kept']}")
+                print(f"  - best repaired score: {repair['best_repaired_score']:.2f}")
         return
 
     if retrieval_info.counts_by_entity_and_risk:
@@ -253,6 +293,25 @@ def main() -> int:
     if args.evidence_top_n <= 0:
         print("--evidence-top-n must be greater than 0.")
         return 1
+    if args.repair_top_k <= 0:
+        print("--repair-top-k must be greater than 0.")
+        return 1
+    if args.repair_max_queries <= 0:
+        print("--repair-max-queries must be greater than 0.")
+        return 1
+    if args.repair_min_kept <= 0:
+        print("--repair-min-kept must be greater than 0.")
+        return 1
+    if args.repair_min_score < 0:
+        print("--repair-min-score must be non-negative.")
+        return 1
+    if args.repair_retrieval:
+        if not args.planner:
+            print("Warning: --repair-retrieval requires planner mode; enabling --planner.")
+            args.planner = True
+        if not args.grade_evidence:
+            print("Warning: --repair-retrieval requires evidence grading; enabling --grade-evidence.")
+            args.grade_evidence = True
     if args.grade_evidence and not args.planner:
         print("--grade-evidence requires --planner.")
         return 1
@@ -287,6 +346,11 @@ def main() -> int:
                 use_planner=args.planner,
                 grade_evidence=args.grade_evidence,
                 evidence_top_n=args.evidence_top_n,
+                repair_retrieval=args.repair_retrieval,
+                repair_top_k=args.repair_top_k,
+                repair_max_queries=args.repair_max_queries,
+                repair_min_kept=args.repair_min_kept,
+                repair_min_score=args.repair_min_score,
                 use_critic=args.critic,
                 retrieval_log_callback=print_retrieval_log,
             )
@@ -314,6 +378,7 @@ def main() -> int:
                 retrieval_summary=_retrieval_info.counts_by_task
                 or _retrieval_info.counts_by_source,
                 evidence_summary=_retrieval_info.evidence_grading_summary,
+                repair_summary=_retrieval_info.retrieval_repair_summary,
                 critic_summary=_retrieval_info.critic_result,
                 sources=sources,
                 report_name=args.report_name,
@@ -334,6 +399,7 @@ def main() -> int:
                 sources=sources,
                 report_path=report_path,
                 report_content=report_content,
+                repair_summary=_retrieval_info.retrieval_repair_summary,
             )
             evaluation_path = save_evaluation_markdown(
                 evaluation,

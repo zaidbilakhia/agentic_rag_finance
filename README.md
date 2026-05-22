@@ -139,6 +139,14 @@ python scripts/ask.py --planner --grade-evidence --critic --report --evaluate --
 
 V5 scores the run with deterministic benchmarking metrics: Retrieval Completeness, Source Relevance, Evidence Grounding, Comparative Reasoning, Risk-Specific Reasoning, Overclaiming Control, Recommendation Quality, Limitations Quality, Source Transparency, and Report Quality.
 
+Use the V6 retrieval repair agent to retry weak or missing evidence tasks:
+
+```bash
+python scripts/ask.py --planner --grade-evidence --repair-retrieval --critic --report --evaluate
+```
+
+V6 runs after evidence grading and before final answer generation. It detects planner tasks with weak or missing evidence, creates targeted fallback queries, retrieves a small number of additional chunks, re-grades them, and merges kept repaired evidence into the final context.
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.

@@ -18,6 +18,7 @@ from src.config import (  # noqa: E402
     require_openai_api_key,
 )
 from src.rag_chain import RetrievalInfo, run_rag_answer  # noqa: E402
+from src.report_generator import collect_sources_from_documents, generate_report  # noqa: E402
 from src.vector_store import load_vector_store  # noqa: E402
 
 
@@ -76,6 +77,16 @@ def parse_args() -> argparse.Namespace:
         "--critic",
         action="store_true",
         help="Use the V3 answer critic to self-check and improve the final answer.",
+    )
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Save a V4 professional Markdown report under outputs/reports.",
+    )
+    parser.add_argument(
+        "--report-name",
+        default=None,
+        help="Optional report filename to save under outputs/reports.",
     )
     return parser.parse_args()
 
@@ -257,6 +268,21 @@ def main() -> int:
         else:
             print("\n" + answer.strip())
         print_sources(documents)
+
+        if args.report:
+            report_path = generate_report(
+                question=question,
+                final_answer=answer,
+                retrieval_plan=_retrieval_info.planner_tasks,
+                retrieval_summary=_retrieval_info.counts_by_task
+                or _retrieval_info.counts_by_source,
+                evidence_summary=_retrieval_info.evidence_grading_summary,
+                critic_summary=_retrieval_info.critic_result,
+                sources=collect_sources_from_documents(documents),
+                report_name=args.report_name,
+            )
+            print("\nReport saved to:")
+            print(report_path)
 
 
 if __name__ == "__main__":

@@ -111,6 +111,20 @@ python scripts/ask.py --planner --grade-evidence --critic
 
 V3 reviews the draft answer against the already retrieved evidence. It does not retrieve new documents. It helps reduce overclaiming, preserve uncertainty, and improve consulting-style recommendations.
 
+Use the V4 report generator agent to export a professional Markdown report:
+
+```bash
+python scripts/ask.py --planner --grade-evidence --critic --report
+```
+
+Optional report filename:
+
+```bash
+python scripts/ask.py --planner --grade-evidence --critic --report --report-name deutsche_vs_commerzbank_v4.md
+```
+
+V4 turns the reviewed answer, retrieval plan, evidence grading summary, critic review, and sources into a reusable report under `outputs/reports/`.
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.

@@ -17,6 +17,7 @@ from src.config import (  # noqa: E402
     DEFAULT_TOP_K,
     require_openai_api_key,
 )
+from src.evaluation_agent import evaluate_run, save_evaluation_markdown  # noqa: E402
 from src.rag_chain import RetrievalInfo, run_rag_answer  # noqa: E402
 from src.report_generator import collect_sources_from_documents, generate_report  # noqa: E402
 from src.vector_store import load_vector_store  # noqa: E402
@@ -87,6 +88,16 @@ def parse_args() -> argparse.Namespace:
         "--report-name",
         default=None,
         help="Optional report filename to save under outputs/reports.",
+    )
+    parser.add_argument(
+        "--evaluate",
+        action="store_true",
+        help="Run the V5 evaluation agent and save a benchmark report.",
+    )
+    parser.add_argument(
+        "--evaluation-name",
+        default=None,
+        help="Optional evaluation filename to save under outputs/evaluations.",
     )
     return parser.parse_args()
 
@@ -206,6 +217,28 @@ def print_critic_summary(retrieval_info: RetrievalInfo) -> None:
     print(f"- summary: {retrieval_info.critic_result.get('critic_summary', '')}")
 
 
+def print_evaluation_summary(evaluation: dict) -> None:
+    """Print V5 metric scores."""
+    labels = {
+        "retrieval_completeness": "Retrieval Completeness",
+        "source_relevance": "Source Relevance",
+        "evidence_grounding": "Evidence Grounding",
+        "comparative_reasoning": "Comparative Reasoning",
+        "risk_specific_reasoning": "Risk-Specific Reasoning",
+        "overclaiming_control": "Overclaiming Control",
+        "recommendation_quality": "Recommendation Quality",
+        "limitations_quality": "Limitations Quality",
+        "source_transparency": "Source Transparency",
+        "report_quality": "Report Quality",
+    }
+    print("\nEvaluation summary:")
+    for key, label in labels.items():
+        score = evaluation["scores"].get(key)
+        score_text = "not scored" if score is None else f"{score}/5"
+        print(f"- {label}: {score_text}")
+    print(f"- Overall Score: {evaluation['overall_score']}/5")
+
+
 def main() -> int:
     args = parse_args()
     if args.k <= 0:
@@ -269,6 +302,10 @@ def main() -> int:
             print("\n" + answer.strip())
         print_sources(documents)
 
+        sources = collect_sources_from_documents(documents)
+        report_path = None
+        report_content = None
+
         if args.report:
             report_path = generate_report(
                 question=question,
@@ -278,11 +315,33 @@ def main() -> int:
                 or _retrieval_info.counts_by_source,
                 evidence_summary=_retrieval_info.evidence_grading_summary,
                 critic_summary=_retrieval_info.critic_result,
-                sources=collect_sources_from_documents(documents),
+                sources=sources,
                 report_name=args.report_name,
             )
+            report_content = (PROJECT_ROOT / report_path).read_text(encoding="utf-8")
             print("\nReport saved to:")
             print(report_path)
+
+        if args.evaluate:
+            evaluation = evaluate_run(
+                question=question,
+                final_answer=answer,
+                retrieval_plan=_retrieval_info.planner_tasks,
+                retrieval_summary=_retrieval_info.counts_by_task
+                or _retrieval_info.counts_by_source,
+                evidence_summary=_retrieval_info.evidence_grading_summary,
+                critic_summary=_retrieval_info.critic_result,
+                sources=sources,
+                report_path=report_path,
+                report_content=report_content,
+            )
+            evaluation_path = save_evaluation_markdown(
+                evaluation,
+                evaluation_name=args.evaluation_name,
+            )
+            print_evaluation_summary(evaluation)
+            print("\nEvaluation saved to:")
+            print(evaluation_path)
 
 
 if __name__ == "__main__":

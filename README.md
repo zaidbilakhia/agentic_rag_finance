@@ -125,6 +125,20 @@ python scripts/ask.py --planner --grade-evidence --critic --report --report-name
 
 V4 turns the reviewed answer, retrieval plan, evidence grading summary, critic review, and sources into a reusable report under `outputs/reports/`.
 
+Use the V5 evaluation agent to score the current run:
+
+```bash
+python scripts/ask.py --planner --grade-evidence --critic --report --evaluate
+```
+
+Optional evaluation filename:
+
+```bash
+python scripts/ask.py --planner --grade-evidence --critic --report --evaluate --evaluation-name v5_deutsche_vs_commerzbank_eval.md
+```
+
+V5 scores the run with deterministic benchmarking metrics: Retrieval Completeness, Source Relevance, Evidence Grounding, Comparative Reasoning, Risk-Specific Reasoning, Overclaiming Control, Recommendation Quality, Limitations Quality, Source Transparency, and Report Quality.
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.

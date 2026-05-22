@@ -187,6 +187,7 @@ st.caption(
     "Query planning, evidence grading, retrieval repair, answer criticism, "
     "report generation, and evaluation for financial documents."
 )
+st.info("Batch benchmarking is available from the CLI using `python3 scripts/run_benchmark.py`.")
 
 with st.sidebar:
     st.header("Pipeline Options")

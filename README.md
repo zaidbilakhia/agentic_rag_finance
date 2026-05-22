@@ -165,6 +165,30 @@ streamlit run apps/streamlit_app.py
 
 The app expects `OPENAI_API_KEY` to be available in the environment.
 
+## V8 — Multi-Question Benchmark Dataset
+
+V8 evaluates the Agentic Finance RAG pipeline across multiple finance questions instead of one fixed prompt. It uses `data/evaluation_questions.json`, runs the full pipeline for each question, and saves JSON plus Markdown benchmark results under `outputs/benchmarks/`.
+
+Run the full benchmark:
+
+```bash
+python scripts/run_benchmark.py
+```
+
+Run only the first three questions:
+
+```bash
+python scripts/run_benchmark.py --limit 3
+```
+
+Use an explicit question file and output directory:
+
+```bash
+python scripts/run_benchmark.py --questions data/evaluation_questions.json --output-dir outputs/benchmarks
+```
+
+The benchmark runner uses Query Planner, Evidence Grader, Retrieval Repair, Answer Critic, Report Generator, and Evaluation Agent by default. It continues if a single question fails and records the failure in the benchmark outputs.
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.

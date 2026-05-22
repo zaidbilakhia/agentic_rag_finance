@@ -1,0 +1,119 @@
+[
+  {
+    "id": "q1_bank_risk_comparison",
+    "question": "Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk. Which bank appears riskier and what should a consultant recommend?",
+    "category": "bank_comparison",
+    "expected_focus": [
+      "Deutsche Bank",
+      "Commerzbank",
+      "operational risk",
+      "liquidity risk",
+      "regulatory risk",
+      "consultant recommendation"
+    ]
+  },
+  {
+    "id": "q2_deutsche_liquidity_framework",
+    "question": "Summarize Deutsche Bank's liquidity risk management framework and identify key risk flags.",
+    "category": "single_bank_liquidity",
+    "expected_focus": [
+      "Deutsche Bank",
+      "liquidity risk",
+      "risk management framework",
+      "risk flags"
+    ]
+  },
+  {
+    "id": "q3_commerzbank_operational_strategy",
+    "question": "Summarize Commerzbank's operational risk strategy and explain what evidence supports it.",
+    "category": "single_bank_operational",
+    "expected_focus": [
+      "Commerzbank",
+      "operational risk",
+      "strategy",
+      "supporting evidence"
+    ]
+  },
+  {
+    "id": "q4_regulatory_risk_comparison",
+    "question": "Compare Deutsche Bank and Commerzbank only on regulatory risk. Which bank shows higher regulatory uncertainty based on retrieved evidence?",
+    "category": "focused_risk_comparison",
+    "expected_focus": [
+      "Deutsche Bank",
+      "Commerzbank",
+      "regulatory risk",
+      "regulatory uncertainty"
+    ]
+  },
+  {
+    "id": "q5_commerzbank_liquidity_gap",
+    "question": "What evidence is missing or weak when comparing Commerzbank's liquidity risk against Deutsche Bank?",
+    "category": "missing_evidence_behavior",
+    "expected_focus": [
+      "Commerzbank",
+      "Deutsche Bank",
+      "liquidity risk",
+      "missing evidence",
+      "weak evidence"
+    ]
+  },
+  {
+    "id": "q6_eba_regulatory_context",
+    "question": "Using EBA context, explain what regulatory factors a consultant should consider when comparing large European banks.",
+    "category": "regulatory_context",
+    "expected_focus": [
+      "EBA",
+      "regulatory factors",
+      "European banks",
+      "consultant recommendation"
+    ]
+  },
+  {
+    "id": "q7_due_diligence_checklist",
+    "question": "Generate a consultant-style due diligence checklist for comparing Deutsche Bank and Commerzbank across risk categories.",
+    "category": "consultant_recommendation",
+    "expected_focus": [
+      "Deutsche Bank",
+      "Commerzbank",
+      "due diligence",
+      "risk categories",
+      "consultant checklist"
+    ]
+  },
+  {
+    "id": "q8_strongest_weakest_evidence",
+    "question": "Which retrieved evidence is strongest and weakest in the Deutsche Bank versus Commerzbank risk comparison?",
+    "category": "evidence_quality",
+    "expected_focus": [
+      "Deutsche Bank",
+      "Commerzbank",
+      "strongest evidence",
+      "weakest evidence",
+      "risk comparison"
+    ]
+  },
+  {
+    "id": "q9_liquidity_disclosure_comparison",
+    "question": "Compare the liquidity risk disclosures of Deutsche Bank and Commerzbank and explain why missing evidence matters.",
+    "category": "liquidity_comparison",
+    "expected_focus": [
+      "Deutsche Bank",
+      "Commerzbank",
+      "liquidity risk",
+      "disclosures",
+      "missing evidence"
+    ]
+  },
+  {
+    "id": "q10_source_backed_executive_summary",
+    "question": "Create a source-backed executive summary comparing the two banks' risk management disclosures.",
+    "category": "source_backed_summary",
+    "expected_focus": [
+      "Deutsche Bank",
+      "Commerzbank",
+      "risk management disclosures",
+      "executive summary",
+      "sources"
+    ]
+  }
+]

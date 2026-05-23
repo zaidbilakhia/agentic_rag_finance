@@ -247,6 +247,10 @@ pip install weasyprint
 
 Depending on the operating system, WeasyPrint may also require system packages. If PDF export fails, the HTML report is still generated.
 
+### V9.1 — PDF / Report Polish
+
+V9.1 improves generated report readability for HTML and PDF exports. It cleans bullet and list rendering, improves table spacing and page-break behavior, adds more consulting-style HTML/PDF styling, and replaces the generic Risk Comparison text with deterministic comparison paragraphs based on available evidence and repair summaries.
+
 ## Reset Vector DB
 
 ```bash

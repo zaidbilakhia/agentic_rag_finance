@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from html import escape
 from pathlib import Path
 from typing import Any
@@ -44,10 +45,35 @@ def load_markdown_report(markdown_path: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def ensure_blank_line_before_list(text: str) -> str:
+    """Ensure Markdown lists render as lists during export."""
+    lines = text.splitlines()
+    cleaned = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("- ") and cleaned:
+            previous = cleaned[-1].strip()
+            if previous and not previous.startswith(("- ", "|", "#")):
+                cleaned.append("")
+        cleaned.append(line.rstrip())
+    return "\n".join(cleaned)
+
+
+def polish_markdown_for_export(markdown_text: str) -> str:
+    """Apply deterministic spacing cleanup before Markdown-to-HTML conversion."""
+    text = markdown_text.replace("\r\n", "\n")
+    text = re.sub(r"(:)\s+(-\s+)", r"\1\n\n\2", text)
+    text = re.sub(r"(\*\*[^*\n]+:\*\*)\s+(-\s+)", r"\1\n\n\2", text)
+    text = re.sub(r"\s+(-\s+[A-Z][^-:\n]+(?:\.|;))", r"\n\1", text)
+    text = ensure_blank_line_before_list(text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
 def markdown_to_html(markdown_text: str, title: str = "Agentic Finance RAG Report") -> str:
     """Convert Markdown report text to a complete styled HTML document."""
     body = markdown.markdown(
-        markdown_text,
+        polish_markdown_for_export(markdown_text),
         extensions=["tables", "fenced_code", "toc"],
         output_format="html5",
     )
@@ -59,79 +85,82 @@ def markdown_to_html(markdown_text: str, title: str = "Agentic Finance RAG Repor
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{escaped_title}</title>
   <style>
-    :root {{
-      color-scheme: light;
-      --bg: #f5f7fa;
-      --page: #ffffff;
-      --text: #1f2933;
-      --muted: #5f6b7a;
-      --line: #d8dee8;
-      --accent: #2454a6;
-      --accent-soft: #eef4ff;
-      --table-head: #f0f3f8;
-    }}
     * {{
       box-sizing: border-box;
     }}
     body {{
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f6f8fb;
+      color: #1f2937;
+      font-family: Arial, Helvetica, sans-serif;
       font-size: 16px;
-      line-height: 1.62;
+      line-height: 1.55;
     }}
-    .page {{
-      max-width: 900px;
+    .report-container {{
+      max-width: 950px;
       margin: 32px auto;
-      padding: 48px 56px;
-      background: var(--page);
-      border: 1px solid var(--line);
-      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      background: #ffffff;
+      padding: 44px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
     }}
     h1, h2, h3, h4 {{
-      color: #111827;
       line-height: 1.25;
-      margin: 1.6em 0 0.55em;
     }}
     h1 {{
       margin-top: 0;
-      padding-bottom: 0.5em;
-      border-bottom: 2px solid var(--accent);
-      font-size: 2rem;
+      padding-bottom: 12px;
+      border-bottom: 3px solid #1f4e79;
+      font-size: 28px;
+      color: #111827;
     }}
     h2 {{
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 0.25em;
-      font-size: 1.35rem;
+      margin-top: 34px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #d9e2ec;
+      font-size: 22px;
+      color: #1f4e79;
       page-break-after: avoid;
     }}
     h3 {{
-      font-size: 1.08rem;
+      margin-top: 24px;
+      font-size: 18px;
+      color: #334155;
       page-break-after: avoid;
     }}
-    p, ul, ol, table, pre {{
-      margin-top: 0;
-      margin-bottom: 1rem;
+    p {{
+      margin: 10px 0 14px;
+    }}
+    ul, ol {{
+      margin: 8px 0 16px 24px;
+      padding-left: 16px;
+    }}
+    li {{
+      margin-bottom: 6px;
     }}
     a {{
-      color: var(--accent);
+      color: #1f4e79;
     }}
     table {{
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.94rem;
-      page-break-inside: auto;
+      margin: 18px 0 28px;
+      font-size: 13px;
+      page-break-inside: avoid;
     }}
     th, td {{
-      border: 1px solid var(--line);
-      padding: 9px 11px;
+      border: 1px solid #d8dee9;
+      padding: 10px 12px;
       vertical-align: top;
     }}
     th {{
-      background: var(--table-head);
-      font-weight: 650;
+      background: #eef3f8;
+      color: #111827;
+      font-weight: 700;
       text-align: left;
+    }}
+    tr:nth-child(even) {{
+      background: #fbfdff;
     }}
     tr {{
       page-break-inside: avoid;
@@ -140,8 +169,8 @@ def markdown_to_html(markdown_text: str, title: str = "Agentic Finance RAG Repor
     blockquote {{
       margin: 1rem 0;
       padding: 0.75rem 1rem;
-      border-left: 4px solid var(--accent);
-      background: var(--accent-soft);
+      border-left: 4px solid #1f4e79;
+      background: #eef4ff;
       color: #26364f;
     }}
     pre, code {{
@@ -156,27 +185,26 @@ def markdown_to_html(markdown_text: str, title: str = "Agentic Finance RAG Repor
       border-radius: 6px;
     }}
     code {{
-      background: #eef1f5;
-      padding: 0.1rem 0.25rem;
+      background: #f3f4f6;
+      padding: 2px 5px;
       border-radius: 4px;
     }}
     pre code {{
       background: transparent;
       padding: 0;
     }}
-    h2:first-of-type + p,
-    h2:first-of-type + ul {{
-      padding: 1rem;
-      border: 1px solid #cfe0ff;
-      background: var(--accent-soft);
-      border-radius: 6px;
+    h2[id*="executive-summary"] + p {{
+      padding: 16px 18px;
+      border-left: 4px solid #1f4e79;
+      background: #eef4ff;
+      border-radius: 8px;
     }}
     .footer {{
-      margin-top: 3rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 0.88rem;
+      margin-top: 40px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+      color: #64748b;
+      font-size: 12px;
       text-align: center;
     }}
     @page {{
@@ -186,12 +214,19 @@ def markdown_to_html(markdown_text: str, title: str = "Agentic Finance RAG Repor
       body {{
         background: #ffffff;
       }}
-      .page {{
+      .report-container {{
         margin: 0;
-        padding: 0;
+        padding: 24px;
         max-width: none;
         border: 0;
+        border-radius: 0;
         box-shadow: none;
+      }}
+      h2 {{
+        page-break-after: avoid;
+      }}
+      table {{
+        page-break-inside: avoid;
       }}
       a {{
         color: inherit;
@@ -199,10 +234,10 @@ def markdown_to_html(markdown_text: str, title: str = "Agentic Finance RAG Repor
       }}
     }}
     @media (max-width: 720px) {{
-      .page {{
+      .report-container {{
         margin: 0;
         padding: 28px 20px;
-        border: 0;
+        border-radius: 0;
         box-shadow: none;
       }}
       table {{
@@ -213,7 +248,7 @@ def markdown_to_html(markdown_text: str, title: str = "Agentic Finance RAG Repor
   </style>
 </head>
 <body>
-  <main class="page">
+  <main class="report-container">
 {body}
     <footer class="footer">Generated by Agentic Finance RAG</footer>
   </main>

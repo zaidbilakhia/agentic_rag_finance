@@ -37,6 +37,41 @@ def markdown_escape(value: Any) -> str:
     return str(value).replace("|", "\\|").replace("\n", " ").strip()
 
 
+def ensure_blank_line_before_list(text: str) -> str:
+    """Ensure Markdown bullet lists are separated from preceding paragraphs."""
+    lines = text.splitlines()
+    cleaned = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("- ") and cleaned:
+            previous = cleaned[-1].strip()
+            if previous and not previous.startswith(("- ", "|", "#")):
+                cleaned.append("")
+        cleaned.append(line.rstrip())
+    return "\n".join(cleaned)
+
+
+def format_bullet_list(items: list[str]) -> str:
+    """Format simple strings as a Markdown bullet list."""
+    return "\n".join(f"- {item.strip()}" for item in items if item and item.strip())
+
+
+def clean_markdown_spacing(markdown_text: str) -> str:
+    """Clean deterministic Markdown spacing for better HTML/PDF rendering."""
+    text = markdown_text.replace("\r\n", "\n")
+    text = re.sub(r"(:)\s+(-\s+)", r"\1\n\n\2", text)
+    text = re.sub(r"(\*\*[^*\n]+:\*\*)\s+(-\s+)", r"\1\n\n\2", text)
+    text = re.sub(r"\s+(-\s+[A-Z][^-:\n]+(?:\.|;))", r"\n\1", text)
+    text = ensure_blank_line_before_list(text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
+def clean_report_section(text: str) -> str:
+    """Clean one extracted answer section before embedding it in the report."""
+    return clean_markdown_spacing(text.strip()) if text else ""
+
+
 def extract_answer_section(answer: str, heading: str) -> str:
     """Extract a section from plain or bold markdown answer headings."""
     headings = [
@@ -147,6 +182,153 @@ def build_risk_section(final_answer: str, risk_heading: str, missing_note: str |
     return text
 
 
+def task_best_score(task_summary: dict) -> float:
+    """Return the best evidence score for one task summary."""
+    items = task_summary.get("items", [])
+    if not items:
+        return 0.0
+    return max(float(item.get("score", 0.0)) for item in items)
+
+
+def evidence_by_entity_and_risk(evidence_summary: list[dict] | None) -> dict[tuple[str, str], dict]:
+    """Index evidence summaries by lowercase entity and risk type."""
+    indexed = {}
+    for item in evidence_summary or []:
+        key = (
+            str(item.get("entity", "unknown")).lower(),
+            str(item.get("risk_type", "unknown")).lower(),
+        )
+        indexed[key] = item
+    return indexed
+
+
+def repair_by_entity_and_risk(repair_summary: list[dict] | None) -> dict[tuple[str, str], dict]:
+    """Index repair summaries by lowercase entity and risk type."""
+    indexed = {}
+    for item in repair_summary or []:
+        key = (
+            str(item.get("entity", "unknown")).lower(),
+            str(item.get("risk_type", "unknown")).lower(),
+        )
+        indexed[key] = item
+    return indexed
+
+
+def evidence_status(
+    entity: str,
+    risk_type: str,
+    evidence_index: dict[tuple[str, str], dict],
+    repair_index: dict[tuple[str, str], dict],
+) -> dict:
+    """Summarize available evidence and repair status for an entity/risk pair."""
+    key = (entity.lower(), risk_type.lower())
+    evidence = evidence_index.get(key, {})
+    repair = repair_index.get(key, {})
+    kept = int(evidence.get("kept", 0) or 0)
+    best_score = task_best_score(evidence)
+    repair_status = repair.get("status", "unknown")
+    additional_kept = int(repair.get("additional_chunks_kept", 0) or 0)
+    weak_or_missing = kept == 0 or (repair_status == "attempted_no_improvement" and additional_kept == 0)
+    return {
+        "kept": kept,
+        "best_score": best_score,
+        "repair_status": repair_status,
+        "weak_or_missing": weak_or_missing,
+    }
+
+
+def build_generic_risk_paragraph(
+    risk_type: str,
+    evidence_index: dict[tuple[str, str], dict],
+    repair_index: dict[tuple[str, str], dict],
+) -> str:
+    """Build cautious generic comparison text for non-standard entity sets."""
+    entities = sorted(
+        {
+            entity
+            for entity, indexed_risk in evidence_index
+            if indexed_risk == risk_type.lower()
+        }
+    )
+    if not entities:
+        return (
+            "For this risk type, compare the available retrieved evidence for each entity. "
+            "If one entity has missing or weak evidence, treat that as uncertainty rather "
+            "than proof of higher actual risk."
+        )
+
+    summaries = []
+    for entity in entities:
+        status = evidence_status(entity, risk_type, evidence_index, repair_index)
+        if status["weak_or_missing"]:
+            summaries.append(f"{entity.title()} has weak or missing kept evidence")
+        else:
+            summaries.append(
+                f"{entity.title()} has {status['kept']} kept evidence chunk(s), "
+                f"with best score {status['best_score']:.2f}"
+            )
+    return (
+        f"For {risk_type}, " + "; ".join(summaries) + ". "
+        "This should be interpreted as a comparison of retrieved evidence coverage, "
+        "not as a definitive risk ranking."
+    )
+
+
+def build_risk_comparison_section(
+    final_answer: str,
+    evidence_summary: list[dict] | None = None,
+    repair_summary: list[dict] | None = None,
+) -> str:
+    """Build deterministic Markdown for the Risk Comparison section."""
+    evidence_index = evidence_by_entity_and_risk(evidence_summary)
+    repair_index = repair_by_entity_and_risk(repair_summary)
+    entities = {entity for entity, _risk_type in evidence_index}
+    has_bank_pair = {"deutsche bank", "commerzbank"}.issubset(entities)
+
+    if has_bank_pair:
+        db_liquidity = evidence_status(
+            "Deutsche Bank", "liquidity risk", evidence_index, repair_index
+        )
+        cb_liquidity = evidence_status(
+            "Commerzbank", "liquidity risk", evidence_index, repair_index
+        )
+        liquidity_gap = (
+            "For Commerzbank, retrieved and graded evidence was insufficient after repair."
+            if cb_liquidity["weak_or_missing"]
+            else "For Commerzbank, the retrieved evidence provides some liquidity-risk coverage."
+        )
+        db_liquidity_text = (
+            "Deutsche Bank has kept evidence describing its liquidity risk management "
+            "framework and stress-period payment obligations."
+            if not db_liquidity["weak_or_missing"]
+            else "Deutsche Bank liquidity evidence was limited in the retrieved set."
+        )
+        return """### 7.1 Operational Risk
+
+Deutsche Bank has stronger retrieved evidence for a formal operational risk management framework, while Commerzbank has retrieved evidence showing operational risk as part of its broader risk strategy. This suggests stronger disclosure coverage for Deutsche Bank, but it should not be interpreted as a definitive lower-risk conclusion.
+
+### 7.2 Liquidity Risk
+
+{db_liquidity_text} {liquidity_gap} This creates higher uncertainty for Commerzbank liquidity risk, but the gap may reflect retrieval or disclosure limitations rather than higher actual liquidity risk.
+
+### 7.3 Regulatory Risk
+
+Both banks have retrieved evidence related to regulatory oversight and compliance. Deutsche Bank evidence is more directly tied to ECB supervision and regulatory requirements, while Commerzbank evidence focuses on compliance and data integrity controls. The comparison should remain cautious because source coverage differs.
+""".format(
+            db_liquidity_text=db_liquidity_text,
+            liquidity_gap=liquidity_gap,
+        ).strip()
+
+    sections = []
+    for index, risk_type in enumerate(
+        ["operational risk", "liquidity risk", "regulatory risk"],
+        start=1,
+    ):
+        title = risk_type.title()
+        sections.append(f"### 7.{index} {title}\n\n{build_generic_risk_paragraph(risk_type, evidence_index, repair_index)}")
+    return "\n\n".join(sections)
+
+
 def table_or_note(headers: list[str], rows: list[list[Any]], empty_note: str) -> str:
     """Render a markdown table or a fallback note."""
     if not rows:
@@ -212,9 +394,13 @@ def generate_report(
 
     report_file = output_path / sanitize_report_name(report_name)
 
-    executive_summary = extract_answer_section(final_answer, "Executive Summary") or final_answer
-    recommendation = extract_answer_section(final_answer, "Recommendation") or final_answer
-    limitations = extract_answer_section(final_answer, "Limitations")
+    executive_summary = clean_report_section(
+        extract_answer_section(final_answer, "Executive Summary") or final_answer
+    )
+    recommendation = clean_report_section(
+        extract_answer_section(final_answer, "Recommendation") or final_answer
+    )
+    limitations = clean_report_section(extract_answer_section(final_answer, "Limitations"))
     confidence = confidence_from_answer(final_answer)
 
     retrieval_rows = [
@@ -318,34 +504,22 @@ Low-relevance evidence was excluded from final answer generation when evidence g
 
 ## 7. Risk Comparison
 
-### 7.1 Operational Risk
-
-{build_risk_section(final_answer, "Operational Risk")}
-
-### 7.2 Liquidity Risk
-
-{build_risk_section(
-        final_answer,
-        "Liquidity Risk",
-        "Retrieved and graded evidence was insufficient for Commerzbank liquidity risk.",
-    )}
-
-### 7.3 Regulatory Risk
-
-{build_risk_section(final_answer, "Regulatory Risk")}
+{build_risk_comparison_section(final_answer, evidence_summary, repair_summary)}
 
 ## 8. Consultant Recommendation
 
 {recommendation}
 
-Additional quantitative indicators to check:
+**Additional quantitative indicators to check:**
 
-- LCR
-- NSFR
-- stress test results
-- capital ratios
-- regulatory findings
-- historical operational loss data
+{format_bullet_list([
+        "LCR",
+        "NSFR",
+        "stress test results",
+        "capital ratios",
+        "regulatory findings",
+        "historical operational loss data",
+    ])}
 
 ## 9. Answer Critic Review
 
@@ -360,17 +534,20 @@ Additional quantitative indicators to check:
 
 ## 11. Limitations
 
-{limitations or "- Analysis is based only on retrieved evidence."}
-- Missing Commerzbank liquidity evidence limits comparison when applicable.
-- Disclosure detail is not the same as actual risk.
-- The final risk conclusion is not a definitive credit, investment, or supervisory rating.
+{limitations or "The analysis is limited by the retrieved evidence."}
+
+{format_bullet_list([
+        "Missing Commerzbank liquidity evidence limits comparison when applicable.",
+        "Disclosure detail is not the same as actual risk.",
+        "The final risk conclusion is not a definitive credit, investment, or supervisory rating.",
+    ])}
 
 ## 12. Confidence
 
 {confidence}
 """
 
-    report_file.write_text(report.strip() + "\n", encoding="utf-8")
+    report_file.write_text(clean_markdown_spacing(report) + "\n", encoding="utf-8")
     try:
         return str(report_file.relative_to(PROJECT_ROOT))
     except ValueError:

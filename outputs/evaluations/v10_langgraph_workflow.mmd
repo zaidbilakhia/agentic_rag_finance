@@ -1,0 +1,41 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	plan_query(plan_query)
+	retrieve_documents(retrieve_documents)
+	grade_evidence(grade_evidence)
+	repair_retrieval(repair_retrieval)
+	generate_answer(generate_answer)
+	critique_answer(critique_answer)
+	maybe_report(maybe_report)
+	generate_report(generate_report)
+	maybe_export(maybe_export)
+	export_report(export_report)
+	maybe_evaluate(maybe_evaluate)
+	evaluate_run(evaluate_run)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> plan_query;
+	critique_answer -.-> maybe_report;
+	export_report -.-> maybe_evaluate;
+	generate_answer -.-> critique_answer;
+	generate_answer -.-> maybe_report;
+	generate_report -.-> maybe_export;
+	grade_evidence -.-> generate_answer;
+	grade_evidence -.-> repair_retrieval;
+	maybe_evaluate -.-> __end__;
+	maybe_evaluate -.-> evaluate_run;
+	maybe_export -.-> export_report;
+	maybe_export -.-> maybe_evaluate;
+	maybe_report -.-> generate_report;
+	maybe_report -.-> maybe_export;
+	plan_query --> retrieve_documents;
+	repair_retrieval --> generate_answer;
+	retrieve_documents --> grade_evidence;
+	evaluate_run --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

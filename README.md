@@ -251,6 +251,32 @@ Depending on the operating system, WeasyPrint may also require system packages. 
 
 V9.1 improves generated report readability for HTML and PDF exports. It cleans bullet and list rendering, improves table spacing and page-break behavior, adds more consulting-style HTML/PDF styling, and replaces the generic Risk Comparison text with deterministic comparison paragraphs based on available evidence and repair summaries.
 
+## V10 — LangGraph Workflow Refactor
+
+V10 wraps the existing Agentic Finance RAG pipeline in a LangGraph `StateGraph`. Previous versions built the agents and pipeline behavior; V10 keeps that logic intact and adds graph-based orchestration. Each major component becomes a graph node, and conditional edges route retrieval repair, answer criticism, report generation, HTML/PDF export, and evaluation.
+
+The original CLI, benchmark runner, export script, benchmark analysis script, and Streamlit app remain available. The graph workflow is optional through `scripts/run_graph.py`.
+
+Run the graph workflow:
+
+```bash
+python3 scripts/run_graph.py \
+  --question "Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk. Which bank appears riskier and what should a consultant recommend?" \
+  --planner \
+  --grade-evidence \
+  --repair-retrieval \
+  --critic \
+  --report \
+  --export-html \
+  --evaluate
+```
+
+Export the workflow as Mermaid:
+
+```bash
+python3 scripts/run_graph.py --export-mermaid
+```
+
 ## Reset Vector DB
 
 ```bash

@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Risk Report 20260523 152021</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #f6f8fb;
+      color: #1f2937;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    .report-container {
+      max-width: 950px;
+      margin: 32px auto;
+      background: #ffffff;
+      padding: 44px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+    }
+    h1 {
+      margin-top: 0;
+      padding-bottom: 12px;
+      border-bottom: 3px solid #1f4e79;
+      font-size: 28px;
+      color: #111827;
+    }
+    h2 {
+      margin-top: 34px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #d9e2ec;
+      font-size: 22px;
+      color: #1f4e79;
+      page-break-after: avoid;
+    }
+    h3 {
+      margin-top: 24px;
+      font-size: 18px;
+      color: #334155;
+      page-break-after: avoid;
+    }
+    p {
+      margin: 10px 0 14px;
+    }
+    ul, ol {
+      margin: 8px 0 16px 24px;
+      padding-left: 16px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    a {
+      color: #1f4e79;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 28px;
+      font-size: 13px;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #d8dee9;
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+    th {
+      background: #eef3f8;
+      color: #111827;
+      font-weight: 700;
+      text-align: left;
+    }
+    tr:nth-child(even) {
+      background: #fbfdff;
+    }
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    blockquote {
+      margin: 1rem 0;
+      padding: 0.75rem 1rem;
+      border-left: 4px solid #1f4e79;
+      background: #eef4ff;
+      color: #26364f;
+    }
+    pre, code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.92em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 6px;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+    }
+    h2[id*="executive-summary"] + p {
+      padding: 16px 18px;
+      border-left: 4px solid #1f4e79;
+      background: #eef4ff;
+      border-radius: 8px;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+      color: #64748b;
+      font-size: 12px;
+      text-align: center;
+    }
+    @page {
+      margin: 22mm 18mm;
+    }
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .report-container {
+        margin: 0;
+        padding: 24px;
+        max-width: none;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      h2 {
+        page-break-after: avoid;
+      }
+      table {
+        page-break-inside: avoid;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+    }
+    @media (max-width: 720px) {
+      .report-container {
+        margin: 0;
+        padding: 28px 20px;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="report-container">
+<h1 id="banking-risk-comparison-report">Banking Risk Comparison Report</h1>
+<h2 id="1-question">1. Question</h2>
+<p>Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk. Which bank appears riskier and what should a consultant recommend?</p>
+<h2 id="2-executive-summary">2. Executive Summary</h2>
+<p>The analysis of operational, liquidity, and regulatory risks for Deutsche Bank and Commerzbank reveals distinct approaches and frameworks for managing these risks. Deutsche Bank demonstrates a comprehensive operational and liquidity risk management framework, while Commerzbank's operational risk strategy is integrated within its overall risk management. However, the evidence for Commerzbank's liquidity risk is insufficient, which complicates a direct comparison.</p>
+<p>This report interprets the final answer as a retrieved-evidence assessment, not as a definitive risk ranking. Missing or weaker retrieved evidence may reflect retrieval coverage or disclosure detail rather than higher actual risk.</p>
+<h2 id="3-agentic-rag-pipeline-used">3. Agentic RAG Pipeline Used</h2>
+<ul>
+<li>Query Planner Agent: decomposed the user question into structured retrieval tasks.</li>
+<li>Evidence Grader Agent: scored retrieved chunks and filtered weak evidence before answer generation.</li>
+<li>Retrieval Repair Agent: retried weak or missing evidence tasks with targeted fallback queries.</li>
+<li>Answer Critic Agent: reviewed the draft answer for grounding, overclaiming, uncertainty, and consulting-style recommendations.</li>
+<li>Report Generator Agent: formatted the completed pipeline outputs into this Markdown report.</li>
+</ul>
+<h2 id="4-generated-retrieval-plan">4. Generated Retrieval Plan</h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Entity</th>
+<th>Risk Type</th>
+<th>Search Query</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Deutsche Bank</td>
+<td>operational risk</td>
+<td>Deutsche Bank operational risk</td>
+<td>Retrieve evidence about Deutsche Bank's operational risk exposure.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Deutsche Bank</td>
+<td>liquidity risk</td>
+<td>Deutsche Bank liquidity risk</td>
+<td>Retrieve evidence about Deutsche Bank's liquidity position and funding risk.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Deutsche Bank</td>
+<td>regulatory risk</td>
+<td>Deutsche Bank regulatory risk</td>
+<td>Retrieve evidence about Deutsche Bank's regulatory risk exposure.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Commerzbank</td>
+<td>operational risk</td>
+<td>Commerzbank operational risk</td>
+<td>Retrieve evidence about Commerzbank's operational risk exposure.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Commerzbank</td>
+<td>liquidity risk</td>
+<td>Commerzbank liquidity risk</td>
+<td>Retrieve evidence about Commerzbank's liquidity position and funding risk.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Commerzbank</td>
+<td>regulatory risk</td>
+<td>Commerzbank regulatory risk</td>
+<td>Retrieve evidence about Commerzbank's regulatory risk exposure.</td>
+</tr>
+<tr>
+<td>7</td>
+<td>EBA</td>
+<td>regulatory context</td>
+<td>EBA regulatory context banking supervision</td>
+<td>Retrieve regulatory context for banking supervision and risk comparison.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-retrieval-summary">5. Retrieval Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Risk Type</th>
+<th>Chunks Retrieved</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deutsche Bank</td>
+<td>operational risk</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Deutsche Bank</td>
+<td>liquidity risk</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Deutsche Bank</td>
+<td>regulatory risk</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>operational risk</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>liquidity risk</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>regulatory risk</td>
+<td>2</td>
+</tr>
+<tr>
+<td>EBA</td>
+<td>regulatory context</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6-evidence-grading-summary">6. Evidence Grading Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Risk Type</th>
+<th>Kept</th>
+<th>Removed</th>
+<th>Best Relevance</th>
+<th>Best Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deutsche Bank</td>
+<td>operational risk</td>
+<td>2</td>
+<td>0</td>
+<td>high</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>Deutsche Bank</td>
+<td>liquidity risk</td>
+<td>2</td>
+<td>0</td>
+<td>high</td>
+<td>0.90</td>
+</tr>
+<tr>
+<td>Deutsche Bank</td>
+<td>regulatory risk</td>
+<td>1</td>
+<td>1</td>
+<td>medium</td>
+<td>0.65</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>operational risk</td>
+<td>1</td>
+<td>1</td>
+<td>high</td>
+<td>0.71</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>liquidity risk</td>
+<td>0</td>
+<td>9</td>
+<td>low</td>
+<td>0.33</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>regulatory risk</td>
+<td>1</td>
+<td>0</td>
+<td>medium</td>
+<td>0.48</td>
+</tr>
+<tr>
+<td>EBA</td>
+<td>regulatory context</td>
+<td>2</td>
+<td>0</td>
+<td>medium</td>
+<td>0.61</td>
+</tr>
+</tbody>
+</table>
+<p>Low-relevance evidence was excluded from final answer generation when evidence grading was enabled.</p>
+<h2 id="retrieval-repair-summary">Retrieval Repair Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Risk Type</th>
+<th>Status</th>
+<th>Additional Retrieved</th>
+<th>Additional Kept</th>
+<th>Best Repaired Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deutsche Bank</td>
+<td>operational risk</td>
+<td>not_needed</td>
+<td>0</td>
+<td>0</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>Deutsche Bank</td>
+<td>liquidity risk</td>
+<td>not_needed</td>
+<td>0</td>
+<td>0</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>Deutsche Bank</td>
+<td>regulatory risk</td>
+<td>not_needed</td>
+<td>0</td>
+<td>0</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>operational risk</td>
+<td>not_needed</td>
+<td>0</td>
+<td>0</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>liquidity risk</td>
+<td>attempted_no_improvement</td>
+<td>8</td>
+<td>0</td>
+<td>0.33</td>
+</tr>
+<tr>
+<td>Commerzbank</td>
+<td>regulatory risk</td>
+<td>not_needed</td>
+<td>0</td>
+<td>0</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>EBA</td>
+<td>regulatory context</td>
+<td>not_needed</td>
+<td>0</td>
+<td>0</td>
+<td>0.00</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-risk-comparison">7. Risk Comparison</h2>
+<h3 id="71-operational-risk">7.1 Operational Risk</h3>
+<p>Deutsche Bank has stronger retrieved evidence for a formal operational risk management framework, while Commerzbank has retrieved evidence showing operational risk as part of its broader risk strategy. This suggests stronger disclosure coverage for Deutsche Bank, but it should not be interpreted as a definitive lower-risk conclusion.</p>
+<h3 id="72-liquidity-risk">7.2 Liquidity Risk</h3>
+<p>Deutsche Bank has kept evidence describing its liquidity risk management framework and stress-period payment obligations. For Commerzbank, retrieved and graded evidence was insufficient after repair. This creates higher uncertainty for Commerzbank liquidity risk, but the gap may reflect retrieval or disclosure limitations rather than higher actual liquidity risk.</p>
+<h3 id="73-regulatory-risk">7.3 Regulatory Risk</h3>
+<p>Both banks have retrieved evidence related to regulatory oversight and compliance. Deutsche Bank evidence is more directly tied to ECB supervision and regulatory requirements, while Commerzbank evidence focuses on compliance and data integrity controls. The comparison should remain cautious because source coverage differs.</p>
+<h2 id="8-consultant-recommendation">8. Consultant Recommendation</h2>
+<p>Further due diligence is required:</p>
+<ul>
+<li>A deeper analysis of Commerzbank's liquidity risk management framework is necessary to assess its robustness compared to Deutsche Bank. The lack of evidence in this area raises concerns about the overall risk profile of Commerzbank.</li>
+</ul>
+<p><strong>Additional quantitative indicators to check:</strong></p>
+<ul>
+<li>Liquidity ratios and stress test results for both banks.</li>
+<li>Historical operational risk loss data for both banks.</li>
+</ul>
+<p><strong>Suggested consultant next steps:</strong></p>
+<ul>
+<li>Conduct a comparative analysis of liquidity risk metrics.</li>
+<li>Review the latest stress test results and their implications for both banks.</li>
+</ul>
+<p><strong>Additional quantitative indicators to check:</strong></p>
+<ul>
+<li>LCR</li>
+<li>NSFR</li>
+<li>stress test results</li>
+<li>capital ratios</li>
+<li>regulatory findings</li>
+<li>historical operational loss data</li>
+</ul>
+<h2 id="9-answer-critic-review">9. Answer Critic Review</h2>
+<ul>
+<li>passed: false</li>
+<li>issues found: 2</li>
+<li>main issue: The answer lacks sufficient evidence for Commerzbank's liquidity risk, which is critical for a comprehensive risk comparison.</li>
+<li>critic summary: The draft answer lacks sufficient evidence for Commerzbank's liquidity risk, which is critical for a comprehensive risk comparison. Additionally, it overclaims by implying a definitive conclusion about the banks' risk levels without adequate support.</li>
+</ul>
+<h2 id="10-sources">10. Sources</h2>
+<table>
+<thead>
+<tr>
+<th>Source File</th>
+<th>Pages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>commerzbank_annual_report_2024.pdf</td>
+<td>13, 61</td>
+</tr>
+<tr>
+<td>deutsche_bank_annual_report_2024.pdf</td>
+<td>133, 136, 138, 140, 98</td>
+</tr>
+<tr>
+<td>eba_annual_report_2024.pdf</td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+<h2 id="11-limitations">11. Limitations</h2>
+<ul>
+<li>The analysis is limited by the lack of comprehensive liquidity risk evidence for Commerzbank, which may affect the overall risk comparison.</li>
+<li>Missing Commerzbank liquidity evidence limits comparison when applicable.</li>
+<li>Disclosure detail is not the same as actual risk.</li>
+<li>The final risk conclusion is not a definitive credit, investment, or supervisory rating.</li>
+</ul>
+<h2 id="12-confidence">12. Confidence</h2>
+<p>Medium</p>
+    <footer class="footer">Generated by Agentic Finance RAG</footer>
+  </main>
+</body>
+</html>

@@ -2,43 +2,45 @@
 
 ## 1. Question
 
-Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk. Which bank appears riskier and what should a consultant recommend?
+Create a source-backed executive summary comparing the two banks' risk management disclosures.
 
 ## 2. Overall Score
 
-4.1/5
+4.3/5
 
-The system shows structured retrieval, evidence filtering, cautious reasoning, and reusable reporting. Remaining gaps should be reviewed per metric notes.
+The system shows structured retrieval, evidence filtering, cautious reasoning, and reusable reporting. Overall score uses question-type-aware metric weights.
+
+- effective question category: source_backed_summary
+- score type: weighted overall score
 
 ## 3. Metric Scores
 
-| Metric | Score | Notes |
-|---|---|---|
-| Retrieval Completeness | 4/5 | Expected tasks were planned, but at least one evidence gap remained after repair. |
-| Source Relevance | 3/5 | Some low-relevance or missing evidence remained unresolved after repair. |
-| Evidence Grounding | 5/5 | Answer is cautious, source-backed, and mentions missing evidence. |
-| Comparative Reasoning | 5/5 | Answer directly compares both banks across all requested risks with uncertainty. |
-| Risk-Specific Reasoning | 5/5 | All three requested risk categories are clearly separated and discussed. |
-| Overclaiming Control | 2/5 | Answer contains some caution but also potentially overclaims. |
-| Recommendation Quality | 3/5 | Recommendation is acceptable but could be more specific. |
-| Limitations Quality | 4/5 | Limitations are clear. |
-| Source Transparency | 5/5 | Source filenames and pages are visible in answer/output metadata. |
-| Report Quality | 5/5 | Report includes nearly all expected professional sections. |
+| Metric | Score | Weight | Notes |
+|---|---|---|---|
+| Retrieval Completeness | 4/5 | 1.0 | Expected tasks were planned, but at least one evidence gap remained after repair. |
+| Source Relevance | 3/5 | 1.1 | Some low-relevance or missing evidence remained unresolved after repair. Emphasized for source_backed_summary questions. |
+| Evidence Grounding | 5/5 | 1.5 | Answer is cautious, source-backed, and mentions missing evidence. Emphasized for source_backed_summary questions. |
+| Comparative Reasoning | 4/5 | 0.8 | Answer compares both banks but some risk comparison detail could be stronger. Downweighted because comparison is not the main purpose for source_backed_summary questions. |
+| Risk-Specific Reasoning | 5/5 | 0.9 | All three requested risk categories are clearly separated and discussed. Downweighted for source_backed_summary questions. |
+| Overclaiming Control | 4/5 | 1.1 | Answer uses careful comparative language. Emphasized for source_backed_summary questions. |
+| Recommendation Quality | 3/5 | 0.7 | Recommendation is acceptable but could be more specific. Downweighted because recommendations are not the main focus for source_backed_summary questions. |
+| Limitations Quality | 4/5 | 1.1 | Limitations are clear. Emphasized for source_backed_summary questions. |
+| Source Transparency | 5/5 | 1.4 | Source filenames and pages are visible in answer/output metadata. Emphasized for source_backed_summary questions. |
+| Report Quality | 5/5 | 1.0 | Report includes nearly all expected professional sections. |
 
 ## 4. Strengths
 
 - Balanced retrieval plan across both banks and requested risk types.
+- Final answer uses cautious language and avoids definitive unsupported ranking.
 
 ## 5. Weaknesses
 
 - Evidence relevance could be improved.
 - Some evidence gaps remained after retrieval repair.
-- Final answer may need stronger overclaiming controls.
 
 ## 6. Recommendations
 
 - Add additional fallback queries or ingest more relevant pages for unresolved tasks.
-- Strengthen answer critic instructions for risk-ranking language.
 
 ## 7. Pipeline Metadata
 
@@ -47,7 +49,7 @@ The system shows structured retrieval, evidence filtering, cautious reasoning, a
 - retrieval repair used: true
 - critic used: true
 - report generated: true
-- report path: outputs/reports/risk_report_20260523_013736.md
+- report path: outputs/reports/v8_q10_source_backed_executive_summary_report.md
 
 ## 8. Retrieval Completeness Details
 

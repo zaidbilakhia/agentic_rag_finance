@@ -1,0 +1,549 @@
+{
+  "benchmark_name": "V8 Multi-Question Benchmark",
+  "timestamp": "20260523_021823",
+  "questions_evaluated": 2,
+  "questions_completed": 2,
+  "questions_failed": 0,
+  "average_overall_score": 3.9,
+  "average_scores": {
+    "retrieval_completeness": 4.0,
+    "source_relevance": 3.0,
+    "evidence_grounding": 4.5,
+    "comparative_reasoning": 3.0,
+    "risk_specific_reasoning": 3.5,
+    "overclaiming_control": 4.0,
+    "recommendation_quality": 3.0,
+    "limitations_quality": 4.0,
+    "source_transparency": 5.0,
+    "report_quality": 5.0
+  },
+  "results": [
+    {
+      "id": "q1_bank_risk_comparison",
+      "question": "Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk. Which bank appears riskier and what should a consultant recommend?",
+      "category": "bank_comparison",
+      "expected_focus": [
+        "Deutsche Bank",
+        "Commerzbank",
+        "operational risk",
+        "liquidity risk",
+        "regulatory risk",
+        "consultant recommendation"
+      ],
+      "status": "completed",
+      "overall_score": 4.4,
+      "scores": {
+        "retrieval_completeness": 4,
+        "source_relevance": 3,
+        "evidence_grounding": 5,
+        "comparative_reasoning": 5,
+        "risk_specific_reasoning": 5,
+        "overclaiming_control": 5,
+        "recommendation_quality": 3,
+        "limitations_quality": 4,
+        "source_transparency": 5,
+        "report_quality": 5
+      },
+      "report_path": "outputs/reports/v8_q1_bank_risk_comparison_report.md",
+      "evaluation_path": "outputs/evaluations/v8_q1_bank_risk_comparison_evaluation.md",
+      "main_critic_issue": "The draft answer suggests Deutsche Bank is definitively stronger in risk management without adequately addressing the comparative uncertainty and evidence gaps for Commerzbank.",
+      "main_weakness": "Evidence relevance could be improved.",
+      "repair_summary": [
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "operational risk",
+          "repair_needed": false,
+          "repair_queries": [],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "not_needed",
+          "message": "Existing graded evidence met repair thresholds.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "liquidity risk",
+          "repair_needed": false,
+          "repair_queries": [],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "not_needed",
+          "message": "Existing graded evidence met repair thresholds.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "regulatory risk",
+          "repair_needed": false,
+          "repair_queries": [],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "not_needed",
+          "message": "Existing graded evidence met repair thresholds.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Commerzbank",
+          "risk_type": "operational risk",
+          "repair_needed": false,
+          "repair_queries": [],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "not_needed",
+          "message": "Existing graded evidence met repair thresholds.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Commerzbank",
+          "risk_type": "liquidity risk",
+          "repair_needed": true,
+          "repair_queries": [
+            "Commerzbank liquidity risk management",
+            "Commerzbank funding risk",
+            "Commerzbank liquidity coverage ratio",
+            "Commerzbank LCR NSFR"
+          ],
+          "additional_chunks_retrieved": 8,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.33,
+          "status": "attempted_no_improvement",
+          "message": "Repair attempted, but no strong evidence was found.",
+          "kept_documents": [],
+          "graded_items": [
+            {
+              "entity": "Commerzbank",
+              "risk_type": "liquidity risk",
+              "source": "commerzbank_annual_report_2024.pdf",
+              "page": 26,
+              "relevance": "low",
+              "score": 0.33,
+              "keep": false,
+              "reason": "mentions target entity: Commerzbank; contains related risk keywords: liquidity; contains concrete evidence terms: losses, capital",
+              "text": ". The analysts\u2019 average price target at the end of the year was \u20ac18.82, vers us \u20ac14.60 at the end of the previous year. Commerzbank\u2019s ratings The rating agencies see Commerzbank as a bank with a strong customer business and a leading market position in German corporate customer business, whose earnings power and profitability have improved significantly in recent years. The asset quality in the loan portfolio continues to be viewed as robust, but the risks in the Corporate Clients portfolio could be susceptible to volatility given prev ailing geopolitical tensions and the cautious economic outlook in Germany, where insolvency figures are on the rise. The Bank\u2019s capitalisation is considered solid and its existing capital buffers help in the event of unforeseen risks and can serve to protect senior creditors by absorbing losses. The liquidity situation is also considered solid",
+              "metadata": {
+                "document_category": "banks",
+                "page_number": 26,
+                "source_file": "commerzbank_annual_report_2024.pdf",
+                "source_path": "/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf",
+                "retrieval_entity": "Commerzbank",
+                "retrieval_focus": "liquidity risk",
+                "retrieval_focuses": "Commerzbank: liquidity risk",
+                "planner_task_index": 5,
+                "planner_search_query": "Commerzbank liquidity risk",
+                "planner_purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk.",
+                "repair_query": "Commerzbank funding risk",
+                "retrieval_repaired": true
+              },
+              "task": {
+                "entity": "Commerzbank",
+                "risk_type": "liquidity risk",
+                "search_query": "Commerzbank liquidity risk",
+                "purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk."
+              },
+              "document": "page_content='. The analysts\u2019 average price target at the end of the year was \u20ac18.82, vers us \u20ac14.60 at the end of the previous year. Commerzbank\u2019s ratings The rating agencies see Commerzbank as a bank with a strong customer business and a leading market position in German corporate customer business, whose earnings power and profitability have improved significantly in recent years. The asset quality in the loan portfolio continues to be viewed as robust, but the risks in the Corporate Clients portfolio could be susceptible to volatility given prev ailing geopolitical tensions and the cautious economic outlook in Germany, where insolvency figures are on the rise. The Bank\u2019s capitalisation is considered solid and its existing capital buffers help in the event of unforeseen risks and can serve to protect senior creditors by absorbing losses. The liquidity situation is also considered solid' metadata={'document_category': 'banks', 'page_number': 26, 'source_file': 'commerzbank_annual_report_2024.pdf', 'source_path': '/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf', 'retrieval_entity': 'Commerzbank', 'retrieval_focus': 'liquidity risk', 'retrieval_focuses': 'Commerzbank: liquidity risk', 'planner_task_index': 5, 'planner_search_query': 'Commerzbank liquidity risk', 'planner_purpose': \"Retrieve evidence about Commerzbank's liquidity position and funding risk.\", 'repair_query': 'Commerzbank funding risk', 'retrieval_repaired': True}"
+            },
+            {
+              "entity": "Commerzbank",
+              "risk_type": "liquidity risk",
+              "source": "commerzbank_annual_report_2024.pdf",
+              "page": 177,
+              "relevance": "low",
+              "score": 0.29,
+              "keep": false,
+              "reason": "mentions target entity: Commerzbank; contains related risk keywords: funding; contains concrete evidence terms: funding",
+              "text": "To our Shareholders Corporate Responsibility Management Report Risk Report Financial Stat ements Further Information 175 47 Sustainability Report 302 Basis of the Commerzbank Group 309 Economic report 319 Segment performance 322 Information on Commerzbank AG (HGB) 325 Outlook and opportunities report bg bh bi bj bk Disclosure reference date T-1 Based on the Turnover KPI TOTAL (CCM + CCA + WTR + CE + PPC + BIO) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Proportion of total covered assets funding taxonomy relevant sectors (Taxonomy-aligned) million \u20ac Of which Use of Proceeds Of which transitional Of which enabling GAR - Covered assets in both numerator and denominator X X X X X 1 Loans and advances, debt securities and equity instruments not HfT eligible for GAR calculation 130 744 8 721 8 488 29 159 2 Financial undertakings 3 963 58 58 - 0 3 Credit institutions 2 883 - - - - 4 Loans and advances 1 608 - - - - 5 Debt securities, including UoP 1 1 274 - - - - 6 Equity",
+              "metadata": {
+                "page_number": 177,
+                "document_category": "banks",
+                "source_file": "commerzbank_annual_report_2024.pdf",
+                "source_path": "/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf",
+                "retrieval_entity": "Commerzbank",
+                "retrieval_focus": "liquidity risk",
+                "retrieval_focuses": "Commerzbank: liquidity risk",
+                "planner_task_index": 5,
+                "planner_search_query": "Commerzbank liquidity risk",
+                "planner_purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk.",
+                "repair_query": "Commerzbank liquidity coverage ratio",
+                "retrieval_repaired": true
+              },
+              "task": {
+                "entity": "Commerzbank",
+                "risk_type": "liquidity risk",
+                "search_query": "Commerzbank liquidity risk",
+                "purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk."
+              },
+              "document": "page_content='To our Shareholders Corporate Responsibility Management Report Risk Report Financial Stat ements Further Information 175 47 Sustainability Report 302 Basis of the Commerzbank Group 309 Economic report 319 Segment performance 322 Information on Commerzbank AG (HGB) 325 Outlook and opportunities report bg bh bi bj bk Disclosure reference date T-1 Based on the Turnover KPI TOTAL (CCM + CCA + WTR + CE + PPC + BIO) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Proportion of total covered assets funding taxonomy relevant sectors (Taxonomy-aligned) million \u20ac Of which Use of Proceeds Of which transitional Of which enabling GAR - Covered assets in both numerator and denominator X X X X X 1 Loans and advances, debt securities and equity instruments not HfT eligible for GAR calculation 130 744 8 721 8 488 29 159 2 Financial undertakings 3 963 58 58 - 0 3 Credit institutions 2 883 - - - - 4 Loans and advances 1 608 - - - - 5 Debt securities, including UoP 1 1 274 - - - - 6 Equity' metadata={'page_number': 177, 'document_category': 'banks', 'source_file': 'commerzbank_annual_report_2024.pdf', 'source_path': '/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf', 'retrieval_entity': 'Commerzbank', 'retrieval_focus': 'liquidity risk', 'retrieval_focuses': 'Commerzbank: liquidity risk', 'planner_task_index': 5, 'planner_search_query': 'Commerzbank liquidity risk', 'planner_purpose': \"Retrieve evidence about Commerzbank's liquidity position and funding risk.\", 'repair_query': 'Commerzbank liquidity coverage ratio', 'retrieval_repaired': True}"
+            },
+            {
+              "entity": "Commerzbank",
+              "risk_type": "liquidity risk",
+              "source": "commerzbank_annual_report_2024.pdf",
+              "page": 2,
+              "relevance": "low",
+              "score": 0.08,
+              "keep": false,
+              "reason": "mentions target entity: Commerzbank; contains concrete evidence terms: ratio, capital; does not match the task risk type",
+              "text": ". compulsory contributions) (%) 58.8 61.4 Balance sheet 31.12.2024 31.12.2023 T otal assets (\u20acbn) 554.6 517.2 Risk-weighted assets (\u20acbn) 173.4 175.1 Equity as shown in balance sheet (\u20acbn) 35.7 33.0 Total capital as shown in balance sheet (\u20acbn) 43.4 39.7 Regulatory key figures 31.12.2024 31.12.2023 Tier 1 capital ratio (%) 17.6 16.5 Common Equity Tier 1 ratio 2 (%) 15.1 14.7 Total capital ratio (%) 20.9 19.3 Leverage ratio (%) 4.8 4.9 Full-time personnel 31.12.2024 31.12.2023 Germany 25,250 25,552 Abroad 13,789 13,013 To t a l 39,040 38,565 Ratings 3 31.12.2024 31.12.2023 Moody\u2019 s Investors Service, New York 4 A1/A2/P -1 A1/A2/P -1 S&P Global, New York 5 A+/A /A -1 A/A -/A -2 \u00b9 Ratio of net income attributable to Commerzbank shareholders after deduction of pay-out accrual and potential (fully discretionary) AT-1 -Coupons and average IFRS equity before minority after deduction of goodwill and other intangible assets without additional equity components and non-controlling interests",
+              "metadata": {
+                "page_number": 2,
+                "document_category": "banks",
+                "source_file": "commerzbank_annual_report_2024.pdf",
+                "source_path": "/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf",
+                "retrieval_entity": "Commerzbank",
+                "retrieval_focus": "liquidity risk",
+                "retrieval_focuses": "Commerzbank: liquidity risk",
+                "planner_task_index": 5,
+                "planner_search_query": "Commerzbank liquidity risk",
+                "planner_purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk.",
+                "repair_query": "Commerzbank liquidity coverage ratio",
+                "retrieval_repaired": true
+              },
+              "task": {
+                "entity": "Commerzbank",
+                "risk_type": "liquidity risk",
+                "search_query": "Commerzbank liquidity risk",
+                "purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk."
+              },
+              "document": "page_content='. compulsory contributions) (%) 58.8 61.4 Balance sheet 31.12.2024 31.12.2023 T otal assets (\u20acbn) 554.6 517.2 Risk-weighted assets (\u20acbn) 173.4 175.1 Equity as shown in balance sheet (\u20acbn) 35.7 33.0 Total capital as shown in balance sheet (\u20acbn) 43.4 39.7 Regulatory key figures 31.12.2024 31.12.2023 Tier 1 capital ratio (%) 17.6 16.5 Common Equity Tier 1 ratio 2 (%) 15.1 14.7 Total capital ratio (%) 20.9 19.3 Leverage ratio (%) 4.8 4.9 Full-time personnel 31.12.2024 31.12.2023 Germany 25,250 25,552 Abroad 13,789 13,013 To t a l 39,040 38,565 Ratings 3 31.12.2024 31.12.2023 Moody\u2019 s Investors Service, New York 4 A1/A2/P -1 A1/A2/P -1 S&P Global, New York 5 A+/A /A -1 A/A -/A -2 \u00b9 Ratio of net income attributable to Commerzbank shareholders after deduction of pay-out accrual and potential (fully discretionary) AT-1 -Coupons and average IFRS equity before minority after deduction of goodwill and other intangible assets without additional equity components and non-controlling interests' metadata={'page_number': 2, 'document_category': 'banks', 'source_file': 'commerzbank_annual_report_2024.pdf', 'source_path': '/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf', 'retrieval_entity': 'Commerzbank', 'retrieval_focus': 'liquidity risk', 'retrieval_focuses': 'Commerzbank: liquidity risk', 'planner_task_index': 5, 'planner_search_query': 'Commerzbank liquidity risk', 'planner_purpose': \"Retrieve evidence about Commerzbank's liquidity position and funding risk.\", 'repair_query': 'Commerzbank liquidity coverage ratio', 'retrieval_repaired': True}"
+            },
+            {
+              "entity": "Commerzbank",
+              "risk_type": "liquidity risk",
+              "source": "commerzbank_annual_report_2024.pdf",
+              "page": 25,
+              "relevance": "low",
+              "score": 0.08,
+              "keep": false,
+              "reason": "mentions target entity: Commerzbank; contains concrete evidence terms: ratio, capital; does not match the task risk type",
+              "text": ". The share buyback started in mid- February 2025 and is expected to be completed by the Annual General Meeting in mid-May 2025. The Commerzbank share price performed very well during 2024, with a total increase of 46 .1%. The Core Tier 1 ratio of 15.1% shows that solvency and stability remain high. The Bank will propose payment of a dividend in the amount of \u20ac0.65 for the 2024 financial year. Commerzbank\u2019s shares were trading at \u20ac15.73 at year-end. This put Commerzbank\u2019s market capitalisation at just under \u20ac19bn, compared with \u20ac13bn in the previous year. The price-to- book ratio ranged between 0.5 and 0.7 during the year under review. By way of comparison, the figure for the European banking index ranged between 0.8 and 1.0. The average daily turnover of Commerzbank\u2019s shares \u2013 measured by the number of shares traded \u2013 was 6.3 million, slightly lower than the previous year\u2019s figure of 7.5 million",
+              "metadata": {
+                "source_file": "commerzbank_annual_report_2024.pdf",
+                "page_number": 25,
+                "document_category": "banks",
+                "source_path": "/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf",
+                "retrieval_entity": "Commerzbank",
+                "retrieval_focus": "liquidity risk",
+                "retrieval_focuses": "Commerzbank: liquidity risk",
+                "planner_task_index": 5,
+                "planner_search_query": "Commerzbank liquidity risk",
+                "planner_purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk.",
+                "repair_query": "Commerzbank liquidity coverage ratio",
+                "retrieval_repaired": true
+              },
+              "task": {
+                "entity": "Commerzbank",
+                "risk_type": "liquidity risk",
+                "search_query": "Commerzbank liquidity risk",
+                "purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk."
+              },
+              "document": "page_content='. The share buyback started in mid- February 2025 and is expected to be completed by the Annual General Meeting in mid-May 2025. The Commerzbank share price performed very well during 2024, with a total increase of 46 .1%. The Core Tier 1 ratio of 15.1% shows that solvency and stability remain high. The Bank will propose payment of a dividend in the amount of \u20ac0.65 for the 2024 financial year. Commerzbank\u2019s shares were trading at \u20ac15.73 at year-end. This put Commerzbank\u2019s market capitalisation at just under \u20ac19bn, compared with \u20ac13bn in the previous year. The price-to- book ratio ranged between 0.5 and 0.7 during the year under review. By way of comparison, the figure for the European banking index ranged between 0.8 and 1.0. The average daily turnover of Commerzbank\u2019s shares \u2013 measured by the number of shares traded \u2013 was 6.3 million, slightly lower than the previous year\u2019s figure of 7.5 million' metadata={'source_file': 'commerzbank_annual_report_2024.pdf', 'page_number': 25, 'document_category': 'banks', 'source_path': '/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf', 'retrieval_entity': 'Commerzbank', 'retrieval_focus': 'liquidity risk', 'retrieval_focuses': 'Commerzbank: liquidity risk', 'planner_task_index': 5, 'planner_search_query': 'Commerzbank liquidity risk', 'planner_purpose': \"Retrieve evidence about Commerzbank's liquidity position and funding risk.\", 'repair_query': 'Commerzbank liquidity coverage ratio', 'retrieval_repaired': True}"
+            },
+            {
+              "entity": "Commerzbank",
+              "risk_type": "liquidity risk",
+              "source": "commerzbank_annual_report_2024.pdf",
+              "page": 68,
+              "relevance": "low",
+              "score": 0.04,
+              "keep": false,
+              "reason": "mentions target entity: Commerzbank; contains concrete evidence terms: requirement; does not match the task risk type",
+              "text": ". Actual Negative impact The Commerzbank Group can contribute to the harming and loss of important ecosystems by financing companies and projects. Actual Risk The Commerzbank Group may face a higher credit default risk because the financed economic activities are dependent on ecosystem services that are in decline. Additionally, loans may be affected by acute natural disasters that are exacerbated or triggered by biodiversity loss. The ensuing risks, including credit risk, may in turn lead to increased business risks. Potential Risk Investing in projects or lending to companies that harm biodiversity can engender reputational risks, credit default risks and business risks, as economic processes that harm biodiversity are increasingly subject to regulatory requirements and meet with resistance from society",
+              "metadata": {
+                "document_category": "banks",
+                "source_path": "/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf",
+                "source_file": "commerzbank_annual_report_2024.pdf",
+                "page_number": 68,
+                "retrieval_entity": "Commerzbank",
+                "retrieval_focus": "liquidity risk",
+                "retrieval_focuses": "Commerzbank: liquidity risk",
+                "planner_task_index": 5,
+                "planner_search_query": "Commerzbank liquidity risk",
+                "planner_purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk.",
+                "repair_query": "Commerzbank funding risk",
+                "retrieval_repaired": true
+              },
+              "task": {
+                "entity": "Commerzbank",
+                "risk_type": "liquidity risk",
+                "search_query": "Commerzbank liquidity risk",
+                "purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk."
+              },
+              "document": "page_content='. Actual Negative impact The Commerzbank Group can contribute to the harming and loss of important ecosystems by financing companies and projects. Actual Risk The Commerzbank Group may face a higher credit default risk because the financed economic activities are dependent on ecosystem services that are in decline. Additionally, loans may be affected by acute natural disasters that are exacerbated or triggered by biodiversity loss. The ensuing risks, including credit risk, may in turn lead to increased business risks. Potential Risk Investing in projects or lending to companies that harm biodiversity can engender reputational risks, credit default risks and business risks, as economic processes that harm biodiversity are increasingly subject to regulatory requirements and meet with resistance from society' metadata={'document_category': 'banks', 'source_path': '/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf', 'source_file': 'commerzbank_annual_report_2024.pdf', 'page_number': 68, 'retrieval_entity': 'Commerzbank', 'retrieval_focus': 'liquidity risk', 'retrieval_focuses': 'Commerzbank: liquidity risk', 'planner_task_index': 5, 'planner_search_query': 'Commerzbank liquidity risk', 'planner_purpose': \"Retrieve evidence about Commerzbank's liquidity position and funding risk.\", 'repair_query': 'Commerzbank funding risk', 'retrieval_repaired': True}"
+            },
+            {
+              "entity": "Commerzbank",
+              "risk_type": "liquidity risk",
+              "source": "commerzbank_annual_report_2024.pdf",
+              "page": 172,
+              "relevance": "low",
+              "score": 0.04,
+              "keep": false,
+              "reason": "mentions target entity: Commerzbank; contains concrete evidence terms: mitigation; does not match the task risk type",
+              "text": "170 Commerzbank Annual Report 2024 ag ah ai aj ak al am an ao ap Disclosure reference date T-1 Based on the Turnover KPI Climate Change Mitigation (CCM) Climate Change Adaptation (CCA) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Of which environmentally sustainable (Taxonomy-aligned) Of which environmentally sustainable (Taxonomy-aligned) million \u20ac Total [gross] car- rying amount Of which Use of Pro- ceeds Of which transi- tional Of which enabling Of which Use of Pro- ceeds Of which enabling 35 Loans and advances 77 823 X X X X X X X X X 36 of which loans collateral- ised by commercial im- movable property 9 181 X X X X X X X X X 37 of which building reno- vation loans 340 X X X X X X X X X 38 Debt securities 34 448 X X X X X X X X X 39 Equity instruments 599 X X X X X X X X X 40 Non-EU country counterpar- ties not subject to NFRD dis- closure obligations 69 150 X X X X X X X X X 41 Loans and advances 50",
+              "metadata": {
+                "page_number": 172,
+                "source_file": "commerzbank_annual_report_2024.pdf",
+                "source_path": "/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf",
+                "document_category": "banks",
+                "retrieval_entity": "Commerzbank",
+                "retrieval_focus": "liquidity risk",
+                "retrieval_focuses": "Commerzbank: liquidity risk",
+                "planner_task_index": 5,
+                "planner_search_query": "Commerzbank liquidity risk",
+                "planner_purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk.",
+                "repair_query": "Commerzbank LCR NSFR",
+                "retrieval_repaired": true
+              },
+              "task": {
+                "entity": "Commerzbank",
+                "risk_type": "liquidity risk",
+                "search_query": "Commerzbank liquidity risk",
+                "purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk."
+              },
+              "document": "page_content='170 Commerzbank Annual Report 2024 ag ah ai aj ak al am an ao ap Disclosure reference date T-1 Based on the Turnover KPI Climate Change Mitigation (CCM) Climate Change Adaptation (CCA) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Of which environmentally sustainable (Taxonomy-aligned) Of which environmentally sustainable (Taxonomy-aligned) million \u20ac Total [gross] car- rying amount Of which Use of Pro- ceeds Of which transi- tional Of which enabling Of which Use of Pro- ceeds Of which enabling 35 Loans and advances 77 823 X X X X X X X X X 36 of which loans collateral- ised by commercial im- movable property 9 181 X X X X X X X X X 37 of which building reno- vation loans 340 X X X X X X X X X 38 Debt securities 34 448 X X X X X X X X X 39 Equity instruments 599 X X X X X X X X X 40 Non-EU country counterpar- ties not subject to NFRD dis- closure obligations 69 150 X X X X X X X X X 41 Loans and advances 50' metadata={'page_number': 172, 'source_file': 'commerzbank_annual_report_2024.pdf', 'source_path': '/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf', 'document_category': 'banks', 'retrieval_entity': 'Commerzbank', 'retrieval_focus': 'liquidity risk', 'retrieval_focuses': 'Commerzbank: liquidity risk', 'planner_task_index': 5, 'planner_search_query': 'Commerzbank liquidity risk', 'planner_purpose': \"Retrieve evidence about Commerzbank's liquidity position and funding risk.\", 'repair_query': 'Commerzbank LCR NSFR', 'retrieval_repaired': True}"
+            },
+            {
+              "entity": "Commerzbank",
+              "risk_type": "liquidity risk",
+              "source": "commerzbank_annual_report_2024.pdf",
+              "page": 201,
+              "relevance": "low",
+              "score": 0.04,
+              "keep": false,
+              "reason": "mentions target entity: Commerzbank; contains concrete evidence terms: mitigation; does not match the task risk type",
+              "text": "To our Shareholders Corporate Responsibility Management Report Risk Report Financial Stat ements Further Information 199 47 Sustainability Report 302 Basis of the Commerzbank Group 309 Economic report 319 Segment performance 322 Information on Commerzbank AG (HGB) 325 Outlook and opportunities report a b c d e f g h Climate Change Mitigation (CCM) Climate Change Adaptation (CCA) Based on the Turnover KPI Non-Financial corporates (Subject to NFRD) SMEs and other NFC not subject to NFRD Non-Financial corporates (Subject to NFRD) SMEs and other NFC not subject to NFRD Breakdown by sector \u2013 NACE 4 digits level (code and label) 1 [Gross] carrying amount [Gross] carrying amount [Gross] carrying amount [Gross] carrying amount million \u20ac Of which environ- mentally sustainable (CCM) million \u20ac Of which environ- mentally sustainable (CCM) million \u20ac Of which environ- mentally sustainable (CCA) million \u20ac Of which environ- mentally sustainable (CCA) 162 47.59 Retail sale of furniture, lighting",
+              "metadata": {
+                "source_path": "/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf",
+                "page_number": 201,
+                "source_file": "commerzbank_annual_report_2024.pdf",
+                "document_category": "banks",
+                "retrieval_entity": "Commerzbank",
+                "retrieval_focus": "liquidity risk",
+                "retrieval_focuses": "Commerzbank: liquidity risk",
+                "planner_task_index": 5,
+                "planner_search_query": "Commerzbank liquidity risk",
+                "planner_purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk.",
+                "repair_query": "Commerzbank LCR NSFR",
+                "retrieval_repaired": true
+              },
+              "task": {
+                "entity": "Commerzbank",
+                "risk_type": "liquidity risk",
+                "search_query": "Commerzbank liquidity risk",
+                "purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk."
+              },
+              "document": "page_content='To our Shareholders Corporate Responsibility Management Report Risk Report Financial Stat ements Further Information 199 47 Sustainability Report 302 Basis of the Commerzbank Group 309 Economic report 319 Segment performance 322 Information on Commerzbank AG (HGB) 325 Outlook and opportunities report a b c d e f g h Climate Change Mitigation (CCM) Climate Change Adaptation (CCA) Based on the Turnover KPI Non-Financial corporates (Subject to NFRD) SMEs and other NFC not subject to NFRD Non-Financial corporates (Subject to NFRD) SMEs and other NFC not subject to NFRD Breakdown by sector \u2013 NACE 4 digits level (code and label) 1 [Gross] carrying amount [Gross] carrying amount [Gross] carrying amount [Gross] carrying amount million \u20ac Of which environ- mentally sustainable (CCM) million \u20ac Of which environ- mentally sustainable (CCM) million \u20ac Of which environ- mentally sustainable (CCA) million \u20ac Of which environ- mentally sustainable (CCA) 162 47.59 Retail sale of furniture, lighting' metadata={'source_path': '/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf', 'page_number': 201, 'source_file': 'commerzbank_annual_report_2024.pdf', 'document_category': 'banks', 'retrieval_entity': 'Commerzbank', 'retrieval_focus': 'liquidity risk', 'retrieval_focuses': 'Commerzbank: liquidity risk', 'planner_task_index': 5, 'planner_search_query': 'Commerzbank liquidity risk', 'planner_purpose': \"Retrieve evidence about Commerzbank's liquidity position and funding risk.\", 'repair_query': 'Commerzbank LCR NSFR', 'retrieval_repaired': True}"
+            },
+            {
+              "entity": "Commerzbank",
+              "risk_type": "liquidity risk",
+              "source": "commerzbank_annual_report_2024.pdf",
+              "page": 166,
+              "relevance": "low",
+              "score": 0.0,
+              "keep": false,
+              "reason": "mentions target entity: Commerzbank; does not match the task risk type",
+              "text": "164 Commerzbank Annual Report 2024 k l m n o p q r Disclosure reference date T Based on the Turnover KPI Water and marine resources (WTR) Circular economy (CE) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Of which environmentally sustainable (Taxonomy-aligned) Of which environmentally sustainable (Taxonomy-aligned) million \u20ac Of which Use of Proceeds Of which enabling Of which Use of Proceeds Of which enabling 42 Debt securities X X X X X X X X 43 Equity instruments X X X X X X X X 44 Derivatives X X X X X X X X 45 On demand interbank loans X X X X X X X X 46 Cash and cash-related assets X X X X X X X X 47 Other categories of assets (e.g",
+              "metadata": {
+                "document_category": "banks",
+                "page_number": 166,
+                "source_file": "commerzbank_annual_report_2024.pdf",
+                "source_path": "/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf",
+                "retrieval_entity": "Commerzbank",
+                "retrieval_focus": "liquidity risk",
+                "retrieval_focuses": "Commerzbank: liquidity risk",
+                "planner_task_index": 5,
+                "planner_search_query": "Commerzbank liquidity risk",
+                "planner_purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk.",
+                "repair_query": "Commerzbank LCR NSFR",
+                "retrieval_repaired": true
+              },
+              "task": {
+                "entity": "Commerzbank",
+                "risk_type": "liquidity risk",
+                "search_query": "Commerzbank liquidity risk",
+                "purpose": "Retrieve evidence about Commerzbank's liquidity position and funding risk."
+              },
+              "document": "page_content='164 Commerzbank Annual Report 2024 k l m n o p q r Disclosure reference date T Based on the Turnover KPI Water and marine resources (WTR) Circular economy (CE) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Of which towards taxonomy relevant sectors (Taxonomy-eligible) Of which environmentally sustainable (Taxonomy-aligned) Of which environmentally sustainable (Taxonomy-aligned) million \u20ac Of which Use of Proceeds Of which enabling Of which Use of Proceeds Of which enabling 42 Debt securities X X X X X X X X 43 Equity instruments X X X X X X X X 44 Derivatives X X X X X X X X 45 On demand interbank loans X X X X X X X X 46 Cash and cash-related assets X X X X X X X X 47 Other categories of assets (e.g' metadata={'document_category': 'banks', 'page_number': 166, 'source_file': 'commerzbank_annual_report_2024.pdf', 'source_path': '/home/zaid/agentic_rag_finance/data/raw_pdfs/banks/commerzbank_annual_report_2024.pdf', 'retrieval_entity': 'Commerzbank', 'retrieval_focus': 'liquidity risk', 'retrieval_focuses': 'Commerzbank: liquidity risk', 'planner_task_index': 5, 'planner_search_query': 'Commerzbank liquidity risk', 'planner_purpose': \"Retrieve evidence about Commerzbank's liquidity position and funding risk.\", 'repair_query': 'Commerzbank LCR NSFR', 'retrieval_repaired': True}"
+            }
+          ]
+        },
+        {
+          "entity": "Commerzbank",
+          "risk_type": "regulatory risk",
+          "repair_needed": false,
+          "repair_queries": [],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "not_needed",
+          "message": "Existing graded evidence met repair thresholds.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "EBA",
+          "risk_type": "regulatory context",
+          "repair_needed": false,
+          "repair_queries": [],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "not_needed",
+          "message": "Existing graded evidence met repair thresholds.",
+          "kept_documents": [],
+          "graded_items": []
+        }
+      ],
+      "retrieval_mode": "query planner agent + evidence grader + retrieval repair + answer critic"
+    },
+    {
+      "id": "q2_deutsche_liquidity_framework",
+      "question": "Summarize Deutsche Bank's liquidity risk management framework and identify key risk flags.",
+      "category": "single_bank_liquidity",
+      "expected_focus": [
+        "Deutsche Bank",
+        "liquidity risk",
+        "risk management framework",
+        "risk flags"
+      ],
+      "status": "completed",
+      "overall_score": 3.4,
+      "scores": {
+        "retrieval_completeness": 4,
+        "source_relevance": 3,
+        "evidence_grounding": 4,
+        "comparative_reasoning": 1,
+        "risk_specific_reasoning": 2,
+        "overclaiming_control": 3,
+        "recommendation_quality": 3,
+        "limitations_quality": 4,
+        "source_transparency": 5,
+        "report_quality": 5
+      },
+      "report_path": "outputs/reports/v8_q2_deutsche_liquidity_framework_report.md",
+      "evaluation_path": "outputs/evaluations/v8_q2_deutsche_liquidity_framework_evaluation.md",
+      "main_critic_issue": "The draft answer implies a definitive understanding of Deutsche Bank's liquidity risk management without acknowledging the limitations of the retrieved evidence.",
+      "main_weakness": "Evidence relevance could be improved.",
+      "repair_summary": [
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "liquidity risk",
+          "repair_needed": true,
+          "repair_queries": [
+            "Deutsche Bank liquidity risk management",
+            "Deutsche Bank funding risk",
+            "Deutsche Bank liquidity coverage ratio",
+            "Deutsche Bank LCR NSFR"
+          ],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "attempted_no_improvement",
+          "message": "Repair attempted, but no strong evidence was found.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "liquidity risk",
+          "repair_needed": true,
+          "repair_queries": [
+            "Deutsche Bank liquidity risk management",
+            "Deutsche Bank funding risk",
+            "Deutsche Bank liquidity coverage ratio",
+            "Deutsche Bank LCR NSFR"
+          ],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "attempted_no_improvement",
+          "message": "Repair attempted, but no strong evidence was found.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "liquidity risk",
+          "repair_needed": true,
+          "repair_queries": [
+            "Deutsche Bank liquidity risk management",
+            "Deutsche Bank funding risk",
+            "Deutsche Bank liquidity coverage ratio",
+            "Deutsche Bank LCR NSFR"
+          ],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "attempted_no_improvement",
+          "message": "Repair attempted, but no strong evidence was found.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "liquidity risk",
+          "repair_needed": true,
+          "repair_queries": [
+            "Deutsche Bank liquidity risk management",
+            "Deutsche Bank funding risk",
+            "Deutsche Bank liquidity coverage ratio",
+            "Deutsche Bank LCR NSFR"
+          ],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "attempted_no_improvement",
+          "message": "Repair attempted, but no strong evidence was found.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "liquidity risk",
+          "repair_needed": true,
+          "repair_queries": [
+            "Deutsche Bank liquidity risk management",
+            "Deutsche Bank funding risk",
+            "Deutsche Bank liquidity coverage ratio",
+            "Deutsche Bank LCR NSFR"
+          ],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "attempted_no_improvement",
+          "message": "Repair attempted, but no strong evidence was found.",
+          "kept_documents": [],
+          "graded_items": []
+        },
+        {
+          "entity": "Deutsche Bank",
+          "risk_type": "liquidity risk",
+          "repair_needed": true,
+          "repair_queries": [
+            "Deutsche Bank liquidity risk management",
+            "Deutsche Bank funding risk",
+            "Deutsche Bank liquidity coverage ratio",
+            "Deutsche Bank LCR NSFR"
+          ],
+          "additional_chunks_retrieved": 0,
+          "additional_chunks_kept": 0,
+          "best_repaired_score": 0.0,
+          "status": "attempted_no_improvement",
+          "message": "Repair attempted, but no strong evidence was found.",
+          "kept_documents": [],
+          "graded_items": []
+        }
+      ],
+      "retrieval_mode": "query planner agent + evidence grader + retrieval repair + answer critic"
+    }
+  ]
+}

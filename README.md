@@ -189,6 +189,10 @@ python scripts/run_benchmark.py --questions data/evaluation_questions.json --out
 
 The benchmark runner uses Query Planner, Evidence Grader, Retrieval Repair, Answer Critic, Report Generator, and Evaluation Agent by default. It continues if a single question fails and records the failure in the benchmark outputs.
 
+### V8.2 — Question-Type-Aware Evaluation
+
+Benchmark questions are not all the same. A single-bank liquidity question should not be penalized heavily for lacking two-bank comparative reasoning. V8.2 keeps raw metric scores visible, but computes the overall score with category-aware weights from the benchmark question metadata.
+
 Example questions:
 
 1. Compare Deutsche Bank and Commerzbank based on operational risk, liquidity risk, and regulatory risk.

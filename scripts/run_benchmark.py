@@ -133,10 +133,13 @@ def compact_question_result(question_item: dict, pipeline_result: dict) -> dict:
         "id": question_item.get("id", "unknown"),
         "question": question_item.get("question", ""),
         "category": question_item.get("category", "unknown"),
+        "category_used": evaluation.get("category_used"),
         "expected_focus": question_item.get("expected_focus", []),
         "status": "completed",
         "overall_score": evaluation.get("overall_score"),
         "scores": evaluation.get("scores", {}),
+        "raw_scores": evaluation.get("raw_scores", evaluation.get("scores", {})),
+        "metric_weights": evaluation.get("metric_weights", {}),
         "report_path": pipeline_result.get("report_path"),
         "evaluation_path": pipeline_result.get("evaluation_path"),
         "main_critic_issue": main_critic_issue(pipeline_result.get("critic_summary")),
@@ -152,10 +155,13 @@ def failed_question_result(question_item: dict, error: Exception) -> dict:
         "id": question_item.get("id", "unknown"),
         "question": question_item.get("question", ""),
         "category": question_item.get("category", "unknown"),
+        "category_used": None,
         "status": "failed",
         "error": str(error),
         "overall_score": None,
         "scores": {},
+        "raw_scores": {},
+        "metric_weights": {},
         "report_path": None,
         "evaluation_path": None,
         "main_critic_issue": "n/a",
@@ -248,7 +254,7 @@ def save_benchmark_markdown(payload: dict, output_dir: str | Path, timestamp: st
             + " | ".join(
                 [
                     markdown_escape(result.get("id", "unknown")),
-                    markdown_escape(result.get("category", "unknown")),
+                    markdown_escape(result.get("category_used") or result.get("category", "unknown")),
                     score_text(result.get("overall_score")),
                     markdown_escape(result.get("main_weakness", "")),
                     markdown_link_or_text(result.get("report_path")),
@@ -352,6 +358,8 @@ def run_benchmark(args: argparse.Namespace) -> tuple[dict, str, str]:
                 repair_min_score=args.repair_min_score,
                 report_name=f"v8_{safe_name(question_id)}_report.md",
                 evaluation_name=f"v8_{safe_name(question_id)}_evaluation.md",
+                evaluation_category=question_item.get("category"),
+                expected_focus=question_item.get("expected_focus", []),
             )
             result = compact_question_result(question_item, pipeline_result)
             results.append(result)

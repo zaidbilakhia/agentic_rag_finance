@@ -50,10 +50,192 @@ REPORT_SECTIONS = [
     "Confidence",
 ]
 
+CATEGORY_ALIASES = {
+    "focused_risk_comparison": "single_risk_comparison",
+    "liquidity_comparison": "single_risk_comparison",
+    "missing_evidence_behavior": "missing_evidence",
+    "regulatory_context": "eba_context",
+    "evidence_quality": "evidence_strength",
+}
+
+DEFAULT_METRIC_WEIGHTS = {metric: 1.0 for metric in METRIC_LABELS}
+
+CATEGORY_METRIC_WEIGHTS = {
+    "bank_comparison": {
+        "retrieval_completeness": 1.2,
+        "source_relevance": 1.1,
+        "evidence_grounding": 1.2,
+        "comparative_reasoning": 1.3,
+        "risk_specific_reasoning": 1.2,
+        "overclaiming_control": 1.2,
+        "recommendation_quality": 1.0,
+        "limitations_quality": 1.0,
+        "source_transparency": 1.0,
+        "report_quality": 0.8,
+    },
+    "single_bank_liquidity": {
+        "retrieval_completeness": 1.2,
+        "source_relevance": 1.2,
+        "evidence_grounding": 1.3,
+        "comparative_reasoning": 0.0,
+        "risk_specific_reasoning": 1.2,
+        "overclaiming_control": 1.1,
+        "recommendation_quality": 1.0,
+        "limitations_quality": 1.0,
+        "source_transparency": 1.0,
+        "report_quality": 0.8,
+    },
+    "single_bank_operational": {
+        "retrieval_completeness": 1.2,
+        "source_relevance": 1.2,
+        "evidence_grounding": 1.3,
+        "comparative_reasoning": 0.0,
+        "risk_specific_reasoning": 1.2,
+        "overclaiming_control": 1.1,
+        "recommendation_quality": 1.0,
+        "limitations_quality": 1.0,
+        "source_transparency": 1.0,
+        "report_quality": 0.8,
+    },
+    "single_bank_regulatory": {
+        "retrieval_completeness": 1.2,
+        "source_relevance": 1.2,
+        "evidence_grounding": 1.3,
+        "comparative_reasoning": 0.0,
+        "risk_specific_reasoning": 1.2,
+        "overclaiming_control": 1.1,
+        "recommendation_quality": 1.0,
+        "limitations_quality": 1.0,
+        "source_transparency": 1.0,
+        "report_quality": 0.8,
+    },
+    "single_risk_comparison": {
+        "retrieval_completeness": 1.2,
+        "source_relevance": 1.1,
+        "evidence_grounding": 1.2,
+        "comparative_reasoning": 1.2,
+        "risk_specific_reasoning": 1.3,
+        "overclaiming_control": 1.1,
+        "recommendation_quality": 0.7,
+        "limitations_quality": 1.0,
+        "source_transparency": 1.0,
+        "report_quality": 0.8,
+    },
+    "missing_evidence": {
+        "retrieval_completeness": 1.0,
+        "source_relevance": 1.1,
+        "evidence_grounding": 1.3,
+        "comparative_reasoning": 0.8,
+        "risk_specific_reasoning": 1.0,
+        "overclaiming_control": 1.3,
+        "recommendation_quality": 0.8,
+        "limitations_quality": 1.4,
+        "source_transparency": 1.1,
+        "report_quality": 0.7,
+    },
+    "eba_context": {
+        "retrieval_completeness": 1.0,
+        "source_relevance": 1.3,
+        "evidence_grounding": 1.3,
+        "comparative_reasoning": 0.3,
+        "risk_specific_reasoning": 1.2,
+        "overclaiming_control": 1.1,
+        "recommendation_quality": 1.0,
+        "limitations_quality": 1.0,
+        "source_transparency": 1.1,
+        "report_quality": 0.8,
+    },
+    "consultant_recommendation": {
+        "retrieval_completeness": 1.0,
+        "source_relevance": 1.0,
+        "evidence_grounding": 1.3,
+        "comparative_reasoning": 0.8,
+        "risk_specific_reasoning": 1.0,
+        "overclaiming_control": 1.1,
+        "recommendation_quality": 1.5,
+        "limitations_quality": 1.2,
+        "source_transparency": 1.0,
+        "report_quality": 0.8,
+    },
+    "evidence_strength": {
+        "retrieval_completeness": 1.0,
+        "source_relevance": 1.4,
+        "evidence_grounding": 1.3,
+        "comparative_reasoning": 0.8,
+        "risk_specific_reasoning": 1.0,
+        "overclaiming_control": 1.2,
+        "recommendation_quality": 0.6,
+        "limitations_quality": 1.2,
+        "source_transparency": 1.2,
+        "report_quality": 0.7,
+    },
+    "source_backed_summary": {
+        "retrieval_completeness": 1.0,
+        "source_relevance": 1.1,
+        "evidence_grounding": 1.5,
+        "comparative_reasoning": 0.8,
+        "risk_specific_reasoning": 0.9,
+        "overclaiming_control": 1.1,
+        "recommendation_quality": 0.7,
+        "limitations_quality": 1.1,
+        "source_transparency": 1.4,
+        "report_quality": 1.0,
+    },
+}
+
 
 def normalize_text(text: str) -> str:
     """Normalize text for simple deterministic scoring."""
     return re.sub(r"\s+", " ", text or "").strip().lower()
+
+
+def detect_question_category(
+    question: str,
+    category: str | None = None,
+    expected_focus: list[str] | None = None,
+) -> str:
+    """Use benchmark category when present, otherwise infer a question category."""
+    if category:
+        normalized_category = normalize_text(category).replace(" ", "_")
+        return CATEGORY_ALIASES.get(normalized_category, normalized_category)
+
+    text = normalize_text(question)
+    focus_text = normalize_text(" ".join(expected_focus or []))
+    combined = f"{text} {focus_text}"
+    mentions_deutsche = "deutsche bank" in combined or "deutsche" in combined
+    mentions_commerzbank = "commerzbank" in combined or "commerz" in combined
+    bank_count = int(mentions_deutsche) + int(mentions_commerzbank)
+    compares = any(term in combined for term in ["compare", "comparing", "comparison", "versus", " vs ", "against"])
+
+    if any(term in combined for term in ["missing", "weak evidence", "insufficient"]):
+        return "missing_evidence"
+    if "eba" in combined or "european banking authority" in combined:
+        return "eba_context"
+    if any(term in combined for term in ["checklist", "due diligence"]):
+        return "consultant_recommendation"
+    if compares and bank_count >= 2:
+        requested_risks = sum(
+            1 for risk in ["operational risk", "liquidity risk", "regulatory risk"] if risk in combined
+        )
+        return "single_risk_comparison" if requested_risks == 1 else "bank_comparison"
+    if any(term in combined for term in ["recommendation", "recommend", "consultant"]):
+        return "consultant_recommendation"
+    if bank_count == 1 and "liquidity" in combined:
+        return "single_bank_liquidity"
+    if bank_count == 1 and "operational" in combined:
+        return "single_bank_operational"
+    if bank_count == 1 and "regulatory" in combined:
+        return "single_bank_regulatory"
+    if "source-backed" in combined or "source backed" in combined:
+        return "source_backed_summary"
+    return "general_finance_rag"
+
+
+def metric_weights_for_category(category: str) -> dict[str, float]:
+    """Return metric weights for the effective evaluation category."""
+    weights = dict(DEFAULT_METRIC_WEIGHTS)
+    weights.update(CATEGORY_METRIC_WEIGHTS.get(category, {}))
+    return weights
 
 
 def sanitize_evaluation_name(evaluation_name: str | None) -> str:
@@ -315,12 +497,60 @@ def score_report_quality(report_content: str | None) -> tuple[int | None, str]:
     return 1, "Report is mostly missing required structure."
 
 
-def calculate_overall_score(scores: dict[str, int | None]) -> float:
-    """Average numeric scores, excluding None."""
-    numeric_scores = [score for score in scores.values() if isinstance(score, int)]
-    if not numeric_scores:
+def calculate_weighted_overall_score(
+    scores: dict[str, int | None],
+    weights: dict[str, float],
+) -> float:
+    """Calculate a weighted average, excluding None scores and zero-weight metrics."""
+    weighted_scores = []
+    total_weight = 0.0
+    for metric, score in scores.items():
+        weight = float(weights.get(metric, 1.0))
+        if score is None or weight <= 0:
+            continue
+        weighted_scores.append(float(score) * weight)
+        total_weight += weight
+    if not weighted_scores or total_weight <= 0:
         return 0.0
-    return round(sum(numeric_scores) / len(numeric_scores), 1)
+    return round(sum(weighted_scores) / total_weight, 1)
+
+
+def calculate_overall_score(
+    scores: dict[str, int | None],
+    category: str | None = None,
+) -> float:
+    """Calculate overall score using category-aware metric weights."""
+    weights = metric_weights_for_category(category or "general_finance_rag")
+    return calculate_weighted_overall_score(scores, weights)
+
+
+def weight_note(metric: str, weight: float, category: str) -> str | None:
+    """Explain excluded or downweighted metrics."""
+    if weight == 0:
+        if metric == "comparative_reasoning" and category.startswith("single_bank"):
+            return "Excluded because this is a single-bank question."
+        return f"Excluded for {category} questions."
+    if weight < 1.0:
+        if metric == "comparative_reasoning":
+            return f"Downweighted because comparison is not the main purpose for {category} questions."
+        if metric == "recommendation_quality":
+            return f"Downweighted because recommendations are not the main focus for {category} questions."
+        if metric == "report_quality":
+            return "Downweighted because report formatting is secondary to answer quality."
+        return f"Downweighted for {category} questions."
+    if weight > 1.0:
+        return f"Emphasized for {category} questions."
+    return None
+
+
+def apply_weight_notes(notes: dict[str, str], weights: dict[str, float], category: str) -> dict[str, str]:
+    """Append category-weighting notes to metric notes."""
+    updated = dict(notes)
+    for metric, weight in weights.items():
+        note = weight_note(metric, weight, category)
+        if note:
+            updated[metric] = f"{updated.get(metric, '')} {note}".strip()
+    return updated
 
 
 def build_pipeline_metadata(
@@ -353,9 +583,12 @@ def evaluate_run(
     report_path: str | None = None,
     report_content: str | None = None,
     repair_summary: list[dict] | None = None,
+    category: str | None = None,
+    expected_focus: list[str] | None = None,
 ) -> dict:
     """Evaluate one completed finance RAG run using deterministic heuristics."""
     del graded_evidence  # Reserved for future finer-grained evaluation.
+    category_used = detect_question_category(question, category, expected_focus)
 
     metric_functions = {
         "retrieval_completeness": score_retrieval_completeness(
@@ -373,8 +606,13 @@ def evaluate_run(
     }
 
     scores = {metric: value[0] for metric, value in metric_functions.items()}
-    notes = {metric: value[1] for metric, value in metric_functions.items()}
-    overall_score = calculate_overall_score(scores)
+    metric_weights = metric_weights_for_category(category_used)
+    notes = apply_weight_notes(
+        {metric: value[1] for metric, value in metric_functions.items()},
+        metric_weights,
+        category_used,
+    )
+    overall_score = calculate_weighted_overall_score(scores, metric_weights)
 
     strengths = []
     weaknesses = []
@@ -420,11 +658,17 @@ def evaluate_run(
     return {
         "question": question,
         "scores": scores,
+        "raw_scores": scores,
+        "metric_weights": metric_weights,
         "notes": notes,
+        "category": category_used,
+        "category_used": category_used,
+        "expected_focus": expected_focus or [],
         "overall_score": overall_score,
+        "weighted_overall_score": overall_score,
         "summary": (
             "The system shows structured retrieval, evidence filtering, cautious reasoning, "
-            "and reusable reporting. Remaining gaps should be reviewed per metric notes."
+            "and reusable reporting. Overall score uses question-type-aware metric weights."
         ),
         "strengths": strengths,
         "weaknesses": weaknesses,
@@ -445,6 +689,13 @@ def metric_score_text(score: int | None) -> str:
     return "not scored" if score is None else f"{score}/5"
 
 
+def metric_weight_text(weight: float | None) -> str:
+    """Format a metric weight."""
+    if weight is None:
+        return "n/a"
+    return f"{float(weight):.1f}"
+
+
 def save_evaluation_markdown(
     evaluation: dict,
     output_dir: str | Path = DEFAULT_EVALUATION_DIR,
@@ -462,6 +713,7 @@ def save_evaluation_markdown(
     for metric, label in METRIC_LABELS.items():
         metric_rows.append(
             f"| {label} | {metric_score_text(evaluation['scores'].get(metric))} | "
+            f"{metric_weight_text(evaluation.get('metric_weights', {}).get(metric, 1.0))} | "
             f"{evaluation['notes'].get(metric, '')} |"
         )
 
@@ -483,10 +735,13 @@ def save_evaluation_markdown(
 
 {evaluation['summary']}
 
+- effective question category: {evaluation.get('category_used', 'general_finance_rag')}
+- score type: weighted overall score
+
 ## 3. Metric Scores
 
-| Metric | Score | Notes |
-|---|---|---|
+| Metric | Score | Weight | Notes |
+|---|---|---|---|
 {chr(10).join(metric_rows)}
 
 ## 4. Strengths

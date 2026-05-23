@@ -657,6 +657,8 @@ def run_rag_pipeline(
     repair_min_score: float = 0.40,
     report_name: str | None = None,
     evaluation_name: str | None = None,
+    evaluation_category: str | None = None,
+    expected_focus: list[str] | None = None,
 ) -> dict:
     """Run the full optional Agentic RAG pipeline for CLI or UI callers."""
     from src.config import PROJECT_ROOT, require_openai_api_key
@@ -722,6 +724,8 @@ def run_rag_pipeline(
             report_path=report_path,
             report_content=report_content,
             repair_summary=retrieval_info.retrieval_repair_summary,
+            category=evaluation_category,
+            expected_focus=expected_focus,
         )
         evaluation_path = save_evaluation_markdown(
             evaluation,

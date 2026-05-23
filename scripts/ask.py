@@ -19,6 +19,7 @@ from src.config import (  # noqa: E402
 )
 from src.evaluation_agent import evaluate_run, save_evaluation_markdown  # noqa: E402
 from src.rag_chain import RetrievalInfo, run_rag_answer  # noqa: E402
+from src.report_exporter import export_report  # noqa: E402
 from src.report_generator import collect_sources_from_documents, generate_report  # noqa: E402
 from src.vector_store import load_vector_store  # noqa: E402
 
@@ -117,6 +118,21 @@ def parse_args() -> argparse.Namespace:
         "--report-name",
         default=None,
         help="Optional report filename to save under outputs/reports.",
+    )
+    parser.add_argument(
+        "--export-html",
+        action="store_true",
+        help="Export the generated Markdown report to styled HTML.",
+    )
+    parser.add_argument(
+        "--export-pdf",
+        action="store_true",
+        help="Export the generated report to PDF using WeasyPrint when available.",
+    )
+    parser.add_argument(
+        "--export-name",
+        default=None,
+        help="Optional output filename stem for HTML/PDF exports.",
     )
     parser.add_argument(
         "--evaluate",
@@ -317,6 +333,9 @@ def main() -> int:
         return 1
     if args.critic and not args.planner:
         print("Warning: Answer critic is most useful with --planner and --grade-evidence.")
+    if (args.export_html or args.export_pdf) and not args.report:
+        print("Warning: report export requires a Markdown report; enabling --report.")
+        args.report = True
 
     try:
         require_openai_api_key()
@@ -386,6 +405,24 @@ def main() -> int:
             report_content = (PROJECT_ROOT / report_path).read_text(encoding="utf-8")
             print("\nReport saved to:")
             print(report_path)
+
+        if report_path and (args.export_html or args.export_pdf):
+            export_summary = export_report(
+                markdown_path=report_path,
+                export_html=args.export_html or args.export_pdf,
+                export_pdf=args.export_pdf,
+                output_name=args.export_name,
+            )
+            if export_summary.get("html_exported"):
+                print("\nHTML report saved to:")
+                print(export_summary["html_path"])
+            if args.export_pdf:
+                if export_summary.get("pdf_exported"):
+                    print("\nPDF report saved to:")
+                    print(export_summary["pdf_path"])
+                else:
+                    print("\nPDF export failed:")
+                    print(export_summary.get("pdf_error") or "Unknown PDF export error.")
 
         if args.evaluate:
             evaluation = evaluate_run(

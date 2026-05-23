@@ -197,6 +197,16 @@ with st.sidebar:
     repair_retrieval = st.checkbox("Use Retrieval Repair Agent", value=True)
     use_critic = st.checkbox("Use Answer Critic Agent", value=True)
     generate_report = st.checkbox("Generate Report", value=True)
+    export_html = st.checkbox(
+        "Export HTML report",
+        value=False,
+        disabled=not generate_report,
+    )
+    export_pdf = st.checkbox(
+        "Export PDF report",
+        value=False,
+        disabled=not generate_report,
+    )
     run_evaluation = st.checkbox("Run Evaluation Agent", value=True)
 
     with st.expander("Advanced settings"):
@@ -251,6 +261,8 @@ if run_button:
                     repair_retrieval=repair_retrieval,
                     use_critic=use_critic,
                     generate_report=generate_report,
+                    export_html=export_html,
+                    export_pdf=export_pdf,
                     evaluate=run_evaluation,
                     evidence_top_n=int(evidence_top_n),
                     repair_top_k=int(repair_top_k),
@@ -352,10 +364,21 @@ with tabs[4]:
 with tabs[5]:
     st.subheader("Report")
     report_path = result.get("report_path")
+    html_report_path = result.get("html_report_path")
+    pdf_report_path = result.get("pdf_report_path")
+    export_summary = result.get("export_summary") or {}
     report_content = result.get("report_content") or load_file_text(report_path)
     if report_path and report_content:
         st.write(f"**Report path:** `{report_path}`")
         safe_download_button("Download Markdown Report", report_path)
+        if html_report_path:
+            st.write(f"**HTML report path:** `{html_report_path}`")
+            safe_download_button("Download HTML Report", html_report_path, mime_type="text/html")
+        if pdf_report_path:
+            st.write(f"**PDF report path:** `{pdf_report_path}`")
+            safe_download_button("Download PDF Report", pdf_report_path, mime_type="application/pdf")
+        if export_summary.get("pdf_error"):
+            st.warning(export_summary["pdf_error"])
         with st.expander("Report preview", expanded=True):
             st.markdown(report_content)
     else:

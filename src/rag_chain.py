@@ -649,6 +649,8 @@ def run_rag_pipeline(
     repair_retrieval: bool = False,
     use_critic: bool = False,
     generate_report: bool = False,
+    export_html: bool = False,
+    export_pdf: bool = False,
     evaluate: bool = False,
     evidence_top_n: int = DEFAULT_EVIDENCE_TOP_N,
     repair_top_k: int = 3,
@@ -656,6 +658,7 @@ def run_rag_pipeline(
     repair_min_kept: int = 1,
     repair_min_score: float = 0.40,
     report_name: str | None = None,
+    export_name: str | None = None,
     evaluation_name: str | None = None,
     evaluation_category: str | None = None,
     expected_focus: list[str] | None = None,
@@ -663,6 +666,7 @@ def run_rag_pipeline(
     """Run the full optional Agentic RAG pipeline for CLI or UI callers."""
     from src.config import PROJECT_ROOT, require_openai_api_key
     from src.evaluation_agent import evaluate_run, save_evaluation_markdown
+    from src.report_exporter import export_report
     from src.report_generator import collect_sources_from_documents
     from src.report_generator import generate_report as write_report
     from src.vector_store import load_vector_store
@@ -672,6 +676,8 @@ def run_rag_pipeline(
         grade_evidence = True
     if grade_evidence:
         use_planner = True
+    if export_html or export_pdf:
+        generate_report = True
 
     require_openai_api_key()
     vector_store = load_vector_store()
@@ -693,6 +699,9 @@ def run_rag_pipeline(
     retrieval_summary = retrieval_info.counts_by_task or retrieval_info.counts_by_source
     report_path = None
     report_content = None
+    export_summary = None
+    html_report_path = None
+    pdf_report_path = None
     evaluation = None
     evaluation_path = None
 
@@ -711,6 +720,16 @@ def run_rag_pipeline(
         report_file = PROJECT_ROOT / report_path
         if report_file.exists():
             report_content = report_file.read_text(encoding="utf-8")
+
+    if report_path and (export_html or export_pdf):
+        export_summary = export_report(
+            markdown_path=report_path,
+            export_html=export_html or export_pdf,
+            export_pdf=export_pdf,
+            output_name=export_name,
+        )
+        html_report_path = export_summary.get("html_path")
+        pdf_report_path = export_summary.get("pdf_path")
 
     if evaluate:
         evaluation = evaluate_run(
@@ -747,6 +766,9 @@ def run_rag_pipeline(
         "critic_summary": retrieval_info.critic_result,
         "report_path": report_path,
         "report_content": report_content,
+        "html_report_path": html_report_path,
+        "pdf_report_path": pdf_report_path,
+        "export_summary": export_summary,
         "evaluation": evaluation,
         "evaluation_path": evaluation_path,
         "retrieved_sources": sources,

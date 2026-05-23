@@ -9,3 +9,4 @@ pypdf
 python-dotenv
 tiktoken
 streamlit
+markdown

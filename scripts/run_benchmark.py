@@ -55,6 +55,16 @@ def parse_args() -> argparse.Namespace:
         help="Do not run the V5 evaluation agent.",
     )
     parser.add_argument(
+        "--export-html",
+        action="store_true",
+        help="Export per-question Markdown reports to styled HTML. Default: false",
+    )
+    parser.add_argument(
+        "--export-pdf",
+        action="store_true",
+        help="Export per-question reports to PDF using WeasyPrint when available. Default: false",
+    )
+    parser.add_argument(
         "--evidence-top-n",
         type=int,
         default=DEFAULT_EVIDENCE_TOP_N,
@@ -141,6 +151,9 @@ def compact_question_result(question_item: dict, pipeline_result: dict) -> dict:
         "raw_scores": evaluation.get("raw_scores", evaluation.get("scores", {})),
         "metric_weights": evaluation.get("metric_weights", {}),
         "report_path": pipeline_result.get("report_path"),
+        "html_report_path": pipeline_result.get("html_report_path"),
+        "pdf_report_path": pipeline_result.get("pdf_report_path"),
+        "export_summary": pipeline_result.get("export_summary"),
         "evaluation_path": pipeline_result.get("evaluation_path"),
         "main_critic_issue": main_critic_issue(pipeline_result.get("critic_summary")),
         "main_weakness": main_weakness(evaluation),
@@ -350,6 +363,8 @@ def run_benchmark(args: argparse.Namespace) -> tuple[dict, str, str]:
                 repair_retrieval=True,
                 use_critic=True,
                 generate_report=not args.skip_report,
+                export_html=args.export_html,
+                export_pdf=args.export_pdf,
                 evaluate=not args.skip_evaluation,
                 evidence_top_n=args.evidence_top_n,
                 repair_top_k=args.repair_top_k,
@@ -357,6 +372,7 @@ def run_benchmark(args: argparse.Namespace) -> tuple[dict, str, str]:
                 repair_min_kept=args.repair_min_kept,
                 repair_min_score=args.repair_min_score,
                 report_name=f"v8_{safe_name(question_id)}_report.md",
+                export_name=f"v8_{safe_name(question_id)}_report",
                 evaluation_name=f"v8_{safe_name(question_id)}_evaluation.md",
                 evaluation_category=question_item.get("category"),
                 expected_focus=question_item.get("expected_focus", []),

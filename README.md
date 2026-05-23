@@ -217,6 +217,36 @@ python3 scripts/analyze_benchmark.py --input outputs/benchmarks/v8_benchmark_res
 
 The default report is written to `outputs/evaluations/v8_3_benchmark_error_analysis.md`. This script does not run the RAG pipeline, call OpenAI, retrieve documents, or require an API key.
 
+## V9 — HTML/PDF Report Export
+
+V4 generated professional Markdown reports. V9 adds a report export layer that converts those Markdown reports into styled, shareable HTML and optional PDF. HTML export is built in and reliable. PDF export uses WeasyPrint when installed, and fails gracefully if WeasyPrint or its system dependencies are unavailable.
+
+Export an existing Markdown report to HTML:
+
+```bash
+python3 scripts/export_report.py --input outputs/reports/example.md --html
+```
+
+Export HTML and PDF:
+
+```bash
+python3 scripts/export_report.py --input outputs/reports/example.md --html --pdf
+```
+
+Run the full pipeline with report export:
+
+```bash
+python3 scripts/ask.py --planner --grade-evidence --repair-retrieval --critic --report --export-html --export-pdf --evaluate
+```
+
+PDF export is optional. To enable it, install WeasyPrint:
+
+```bash
+pip install weasyprint
+```
+
+Depending on the operating system, WeasyPrint may also require system packages. If PDF export fails, the HTML report is still generated.
+
 ## Reset Vector DB
 
 ```bash

@@ -199,6 +199,24 @@ Example questions:
 2. What are the key regulatory risks mentioned in the documents?
 3. Which risk areas should a financial services consultant investigate further?
 
+### V8.3 — Benchmark Error Analysis
+
+V8.3 reads an existing benchmark result JSON and produces a deterministic Markdown error analysis report. It identifies the strongest and weakest questions, summarizes metric weaknesses, analyzes category-level performance, highlights retrieval repair gaps, and recommends practical next improvements.
+
+Analyze the latest benchmark JSON:
+
+```bash
+python3 scripts/analyze_benchmark.py
+```
+
+Analyze a specific benchmark JSON:
+
+```bash
+python3 scripts/analyze_benchmark.py --input outputs/benchmarks/v8_benchmark_results_20260523_022745.json
+```
+
+The default report is written to `outputs/evaluations/v8_3_benchmark_error_analysis.md`. This script does not run the RAG pipeline, call OpenAI, retrieve documents, or require an API key.
+
 ## Reset Vector DB
 
 ```bash

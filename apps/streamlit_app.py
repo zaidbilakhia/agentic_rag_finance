@@ -188,6 +188,7 @@ st.caption(
     "report generation, and evaluation for financial documents."
 )
 st.info("Batch benchmarking is available from the CLI using `python3 scripts/run_benchmark.py`.")
+st.info("Benchmark error analysis is available from the CLI using `python3 scripts/analyze_benchmark.py`.")
 
 with st.sidebar:
     st.header("Pipeline Options")
